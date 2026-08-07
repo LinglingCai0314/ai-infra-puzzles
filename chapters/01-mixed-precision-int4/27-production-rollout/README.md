@@ -2,92 +2,123 @@
 
 > **Puzzle:** What makes a quantized release safely reversible?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+A quantized artifact is not ready when conversion finishes; it is ready when a versioned
+candidate passes frozen gates and a tested rollback path exists. Release decisions
+should be deterministic from evidence, so the same manifest produces the same
+promote-or-rollback result rather than depending on operator optimism.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Predict whether the candidate passes a 10% latency gate and an RMSE≤0.5 gate.
+2. Explain why both gates are required even when latency improves.
+3. List the additional evidence needed before changing `rollback` to a live canary.
 
-A release unit includes immutable model/tokenizer/recipe/runtime/container identities, metrics, canary policy, observability, and an already verified rollback target.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+A release unit includes immutable model/tokenizer/recipe/runtime/container identities,
+metrics, canary policy, observability, and an already verified rollback target.
 
-- Model, tokenizer, quantization recipe, runtime, and GPU compatibility form one release unit.
-- Canary gates need quality, latency, error-rate, and capacity thresholds.
-- Rollback must reference an already verified immutable baseline.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | Model, tokenizer, quantization recipe, runtime, and GPU compatibility form one release unit. |
+| 2 | Canary gates need quality, latency, error-rate, and capacity thresholds. |
+| 3 | Rollback must reference an already verified immutable baseline. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-Promotion is a state machine: offline gates -> load/smoke -> shadow -> canary -> broader rollout. Every transition consumes fixed evidence and has an automatic stop/rollback condition.
+Promotion is a state machine: offline gates -> load/smoke -> shadow -> canary -> broader
+rollout. Every transition consumes fixed evidence and has an automatic stop/rollback
+condition.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+A release manifest binds candidate and baseline revisions, environment, quantization
+recipe, quality thresholds, performance SLOs, owners, observability, canary fraction,
+and rollback target. Each gate evaluates a named artifact; the decision is the
+conjunction for critical gates, not an average score.
 
-## 3. Engineering trade-off and failure mode
+Rollback must restore a loadable, compatible baseline and be rehearsed before promotion.
+A local synthetic decision can validate the gate machinery while remaining explicit that
+no container, traffic, or service health signal was exercised.
 
-Slow rollout reduces blast radius but delays benefit; aggressive rollout increases risk. Rollback speed depends on keeping the baseline warm and compatible with current traffic.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Evaluate a synthetic candidate against frozen gates and emit a release decision plus rollback manifest from measured CUDA output error and timing.
 
-## 4. From theory to the notebook
-
-Evaluate a synthetic candidate against frozen gates and emit a release decision plus rollback manifest from measured CUDA output error and timing.
-
-The notebook converts measured CUDA error and timing into a deterministic synthetic release decision and rollback manifest, without claiming live traffic.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | versioned BF16 matrix path `bf16-v1` |
+| Candidate | reference INT4-dequantized path `reference-int4-v1` |
+| Held constant | same tensors, fifteen timing samples, fixed RMSE/latency thresholds |
+| Measurements | baseline/candidate median and p90, output error, individual gate booleans, release decision |
+| Evidence label | `capacity-model` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`capacity-model`**.
+The notebook converts measured CUDA error and timing into a deterministic synthetic
+release decision and rollback manifest, without claiming live traffic.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-The manifest is a deployment-control exercise, not evidence that a real service was canaried.
+The notebook measures both paths, computes error, evaluates two predeclared booleans,
+and writes a manifest whose decision is `promote_to_canary` only if all gates pass. The
+rollback target is stored even when the candidate fails.
 
-Version every artifact, define quality/latency/error/capacity thresholds, monitor slices, and test the rollback command before canary traffic.
+This is a deterministic release-policy test. It is not a container build, model-card
+audit, shadow deployment, or canary against live traffic.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `capacity-model`
-- **Recorded outcome:** Frozen synthetic gates produced a deterministic release or rollback decision; no live service canary was claimed.
+| Measured field | Checked-in value |
+|---|---:|
+| Baseline median | 0.019360 ms |
+| Candidate median | 0.018848 ms |
+| Candidate RMSE | 5.317538 |
+| Latency gate | yes |
+| Quality gate | no |
+| Decision | rollback |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+Candidate median latency was 0.018848 ms versus 0.019360 ms for the baseline, so the
+≤10% regression gate passed. But output RMSE was 5.317538, far above the 0.5 threshold,
+so the quality gate failed and the manifest selected `rollback`.
 
-Automate the decision and rollback metadata before exposing traffic; never improvise rollback after a regression.
+A small speed improvement cannot compensate for a failed critical quality gate. The
+result illustrates why release criteria must be conjunctive and frozen before the
+candidate is observed.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Automate the decision and rollback metadata before exposing traffic; never improvise rollback after a regression.
+
+### Acceptance and rollback gate
+
+Version every artifact, define quality/latency/error/capacity thresholds, monitor
+slices, and test the rollback command before canary traffic.
+
+### How this conclusion can fail
+
+Changing thresholds after seeing the result converts a gate into a justification. A
+rollback identifier without a verified artifact is not a rollback plan. Production
+promotion also needs sustained load, error rates, GPU health, output monitoring, and a
+human/operator decision path.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map versioned BF16 matrix path `bf16-v1` and
+reference INT4-dequantized path `reference-int4-v1` back to the derivation. Verify the
+printed environment, then check that same tensors, fifteen timing samples, fixed
+RMSE/latency thresholds stayed fixed. Read baseline/candidate median and p90, output
+error, individual gate booleans, release decision before applying the acceptance gate;
+the artifact-writing cell retains the complete structured result from the recorded run.
 
 ## Reproduce
 
@@ -100,21 +131,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/27-production-rollout/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Package baseline and candidate into pinned containers, validate cold load and warm
+restart, run an offline quality suite and shadow traffic, then perform a small canary
+with automated rollback triggers. Rehearse the rollback and record recovery time before
+expanding traffic.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The calculation uses live GPU information and/or a CUDA probe, but it remains a planning
+model until a named full engine, quality suite, and service workload execute.
+
+The checked-in observation belongs to Lesson 27's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [vLLM quantization documentation](https://docs.vllm.ai/en/latest/features/quantization/)
+- [Hugging Face model cards](https://huggingface.co/docs/hub/model-cards)
+- [NVIDIA Triton model management](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/model_management.html)

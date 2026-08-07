@@ -2,92 +2,131 @@
 
 > **Puzzle:** When loss becomes NaN, how do we distinguish forward overflow, backward overflow, and gradient underflow?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+A final NaN is the last symptom in a chain, not the diagnosis. FP16 can overflow during
+forward, overflow after loss scaling during backward, or silently round tiny gradients
+to zero. Each failure calls for a different response, so the first bad tensor must be
+located before changing the scaler.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Predict which combinations of gradient magnitude and loss scale become zero, finite, or infinite in FP16.
+2. Explain why loss scaling can rescue underflow but cannot repair a forward activation that is already Inf.
+3. Choose probe locations that distinguish forward, scaled-backward, unscaled-gradient, and parameter corruption.
 
-Diagnose four checkpoints: forward outputs, scaled loss/gradients, unscaled gradients, and post-step parameters. A final NaN has already discarded the location of the first failure.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+Diagnose four checkpoints: forward outputs, scaled loss/gradients, unscaled gradients,
+and post-step parameters. A final NaN has already discarded the location of the first
+failure.
 
-- Overflow creates Inf before it becomes NaN in later arithmetic.
-- Underflow silently rounds small gradients to zero.
-- Loss scaling moves gradients into a representable interval but cannot repair an already-overflowed forward pass.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | Overflow creates Inf before it becomes NaN in later arithmetic. |
+| 2 | Underflow silently rounds small gradients to zero. |
+| 3 | Loss scaling moves gradients into a representable interval but cannot repair an already-overflowed forward pass. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-FP16 normal values end near `6.55e4`; very small values enter a sparse subnormal region and can become zero. Loss scaling shifts gradient magnitudes upward during storage, but unscaling must happen before clipping and parameter updates.
+FP16 normal values end near `6.55e4`; very small values enter a sparse subnormal region
+and can become zero. Loss scaling shifts gradient magnitudes upward during storage, but
+unscaling must happen before clipping and parameter updates.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+With loss scale S, an exact gradient g is represented during backward as `Sg`. If g is
+smaller than the FP16 subnormal range, choosing a moderate S can move it onto the
+representable grid; unscale later restores its mathematical magnitude in a wider type.
+If `Sg > 65504`, the scaled gradient becomes Inf. And if a forward value already
+exceeded 65504, multiplying the loss later cannot reconstruct the discarded information.
 
-## 3. Engineering trade-off and failure mode
+This creates a feasible interval for S: large enough that important small gradients
+survive, but small enough that the largest scaled gradient remains finite. Dynamic
+scaling searches that interval through observed overflow. It does not guarantee that
+every tiny gradient is preserved or that the forward pass is stable.
 
-An aggressive scale protects small gradients but increases overflow risk. A conservative scale avoids Inf yet may leave many gradients at zero, so the useful interval is workload-dependent.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Sweep synthetic gradient magnitudes and loss scales in FP16 on CUDA, counting finite, infinite, and zero gradient values.
 
-## 4. From theory to the notebook
-
-Sweep synthetic gradient magnitudes and loss scales in FP16 on CUDA, counting finite, infinite, and zero gradient values.
-
-The CUDA sweep crosses both tiny and large magnitudes at several scales and records zero and Inf fractions, making the failure stage observable.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | FP16 casting of four gradient magnitudes with scale 1 |
+| Candidate | the same magnitudes multiplied by scales 256 and 65536 |
+| Held constant | tensor size, dtype, GPU, values within each magnitude group |
+| Measurements | zero fraction, finite fraction, Inf fraction, plus a separate forward-overflow probe |
+| Evidence label | `pytorch-gpu` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`pytorch-gpu`**.
+The CUDA sweep crosses both tiny and large magnitudes at several scales and records zero
+and Inf fractions, making the failure stage observable.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-The useful evidence is the first stage where finiteness changes. A final NaN without intermediate checks is not a diagnosis.
+The notebook sweeps a Cartesian product rather than waiting for a random training
+failure. For every magnitude/scale pair it casts the scaled value to FP16 and counts
+zero, finite, and infinite entries. A separate `1e5` forward probe establishes that some
+damage can occur before backward begins.
 
-Log finite/Inf/zero fractions and the current scale. If the forward pass is already non-finite, change the operation or dtype; if only scaled gradients overflow, adjust scale policy.
+Because all elements in a row share one magnitude, fractions jump cleanly between zero,
+finite, and Inf. A real model would produce a distribution, but the synthetic grid makes
+the representability boundaries easy to see and debug.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `pytorch-gpu`
-- **Recorded outcome:** Scaling changed gradient representability but could not repair an FP16 value that had already overflowed.
+| Measured field | Checked-in value |
+|---|---:|
+| 1e-8, scale 1: zero fraction | 100.0000% |
+| 1e-8, scale 256: zero fraction | 0.0000% |
+| 1, scale 65536: Inf fraction | 100.0000% |
+| 1000, scale 256: Inf fraction | 100.0000% |
+| Forward 1e5 overflowed | yes |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+At magnitude `1e-8`, scale 1 rounded every value to zero, while scales 256 and 65536
+made all entries finite and non-zero. At magnitude 1, scale 65536 overflowed every
+value. At magnitude 1000, scale 256 was already too large. The independent forward test
+confirmed that FP16 `1e5` was non-finite.
 
-Place finiteness and zero-rate probes at forward outputs, scaled gradients, unscaled gradients, and parameters before changing the scaler policy.
+The same tool—larger scale—therefore fixes one row and breaks another. That is the
+central reason GradScaler adapts and skips unsafe optimizer steps. It is also why a
+scaler change is the wrong fix for forward overflow.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Place finiteness and zero-rate probes at forward outputs, scaled gradients, unscaled gradients, and parameters before changing the scaler policy.
+
+### Acceptance and rollback gate
+
+Log finite/Inf/zero fractions and the current scale. If the forward pass is already
+non-finite, change the operation or dtype; if only scaled gradients overflow, adjust
+scale policy.
+
+### How this conclusion can fail
+
+Looking only at `torch.isfinite(loss)` misses underflow because zeros are finite.
+Looking only after unscale can hide where overflow began. Logging every tensor is too
+expensive, so production diagnosis usually places targeted hooks at loss, selected
+activations, scaled gradients, unscaled gradients, and parameters, then narrows the
+search.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map FP16 casting of four gradient magnitudes with
+scale 1 and the same magnitudes multiplied by scales 256 and 65536 back to the
+derivation. Verify the printed environment, then check that tensor size, dtype, GPU,
+values within each magnitude group stayed fixed. Read zero fraction, finite fraction,
+Inf fraction, plus a separate forward-overflow probe before applying the acceptance
+gate; the artifact-writing cell retains the complete structured result from the recorded
+run.
 
 ## Reproduce
 
@@ -100,21 +139,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/05-fp16-overflow/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Instrument a small FP16 network with hooks that report min/max, zero fraction, and
+finiteness at the four stages. Inject an activation spike and a tiny-gradient layer
+separately. Verify that lowering the scale helps the first backward-overflow case,
+raising it helps the underflow case, and neither repairs the injected forward Inf.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The measured tensors and operations ran on CUDA through PyTorch. The result does not
+name a separate production backend unless an operator trace identifies it.
+
+The checked-in observation belongs to Lesson 05's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [PyTorch AMP documentation](https://docs.pytorch.org/docs/stable/amp.html)
+- [PyTorch AMP examples](https://docs.pytorch.org/docs/stable/notes/amp_examples.html)
+- [PyTorch numerical accuracy notes](https://docs.pytorch.org/docs/stable/notes/numerical_accuracy.html)

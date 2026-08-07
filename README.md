@@ -52,6 +52,12 @@ outputs, and compact machine-readable evidence. The path moves from formats and
 AMP through PTQ algorithms and production backends to service benchmarking,
 custom-kernel boundaries, and a gated 70B deployment plan.
 
+The lesson notes include the derivation, controlled experiment, selected
+measured values, interpretation, failure modes, and next experiment—not only a
+link to notebook output. The notebooks keep the theory next to the code so a
+reader can predict, run, inspect, and explain without switching documents at
+every step.
+
 See the [full 30-lesson chapter map](chapters/01-mixed-precision-int4/README.md).
 
 #### [Lesson 01 — Precision Formats: INT4, Smaller but Faster?](chapters/01-mixed-precision-int4/01-precision-formats/README.md)
@@ -103,6 +109,7 @@ To execute the lightweight mechanism labs for Lessons 02–30 in order:
 ```bash
 python3 scripts/execute_chapter_notebooks.py --chapter 01 --start 2 --end 30
 python3 scripts/validate_chapter.py 01
+python3 scripts/audit_chapter01_delivery.py
 ```
 
 ### Command-line alternative

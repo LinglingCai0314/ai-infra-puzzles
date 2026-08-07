@@ -2,92 +2,127 @@
 
 > **Puzzle:** Where should a quantized system be expected to fail first?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+Quantization often fails by regime rather than on average. Activation outliers amplify
+weight error, a shifted domain changes channel importance, tiny batches expose
+launch/dequant overhead, long context expands cache pressure, and MoE routing
+concentrates work unevenly. A failure matrix makes those reversals visible before
+production does.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Predict which synthetic case produces the largest W4 output RMSE.
+2. Predict whether the reference W4 path is faster in every batch/distribution case.
+3. Design separate tests for long-context cache and MoE routing, which this linear probe does not contain.
 
-Failure modes map to mechanisms: range outliers, distribution shift, long-context cache/attention, MoE routing imbalance, and small irregular GEMMs.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+Failure modes map to mechanisms: range outliers, distribution shift, long-context
+cache/attention, MoE routing imbalance, and small irregular GEMMs.
 
-- Outliers enlarge scale and waste codes on ordinary values.
-- Long context expands cache and can expose positional or attention regressions.
-- MoE routing and small batches create irregular, overhead-sensitive shapes.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | Outliers enlarge scale and waste codes on ordinary values. |
+| 2 | Long context expands cache and can expose positional or attention regressions. |
+| 3 | MoE routing and small batches create irregular, overhead-sensitive shapes. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-One outlier can enlarge a group scale; shifted inputs change layer-output sensitivity; batch-one and routed experts reduce matrix sizes and make launch/dequant overhead visible.
+One outlier can enlarge a group scale; shifted inputs change layer-output sensitivity;
+batch-one and routed experts reduce matrix sizes and make launch/dequant overhead
+visible.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+For fixed weight error ΔW, output error is `XΔWᵀ`; scaling or shifting X directly
+changes its magnitude and direction. This explains why a quantizer calibrated on
+ordinary activations can degrade under outliers or domain shift without any weight bytes
+changing. Small batches add a systems failure mode because fixed launch, unpack, or
+scale overhead is amortized over less work.
 
-## 3. Engineering trade-off and failure mode
+Long context and MoE require additional objects: cache bytes/attention error and
+expert-routing load balance. They belong in the matrix but cannot be inferred from one
+dense linear layer.
 
-Optimizing the average case can worsen a rare but critical slice. Global fallback is safe but expensive; targeted fallback needs reliable detection and routing.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Stress an INT4 linear reference with ordinary inputs, activation outliers, narrow batches, and shifted distributions on CUDA.
 
-## 4. From theory to the notebook
-
-Stress an INT4 linear reference with ordinary inputs, activation outliers, narrow batches, and shifted distributions on CUDA.
-
-The lab holds weights fixed and stresses ordinary, outlier, shifted, and small-batch inputs, preserving each condition instead of averaging them together.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | BF16 matrix multiplication in four controlled input regimes |
+| Candidate | the same multiplication with group-128 INT4-dequantized weights |
+| Held constant | weight matrix and quantizer; only batch/distribution regime changes |
+| Measurements | output RMSE/cosine/max error and median/p90 timing per regime |
+| Evidence label | `pytorch-gpu` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`pytorch-gpu`**.
+The lab holds weights fixed and stresses ordinary, outlier, shifted, and small-batch
+inputs, preserving each condition instead of averaging them together.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-Keep a failure matrix by condition. Average error over mixed cases can conceal the exact reversal condition.
+The notebook quantizes one weight matrix once, then evaluates ordinary, batch-1,
+activation-outlier, and shifted-domain inputs. Each row carries both numerical error and
+timing for baseline/candidate. That paired design prevents a quality failure from being
+hidden by a small speed result.
 
-Maintain a condition-by-metric failure matrix with reversal thresholds and reproduce each failure independently before assigning a fallback.
+The candidate is a dequantized PyTorch reference tensor, not a packed production W4
+kernel. Timing differences therefore illustrate regime sensitivity of the composed path,
+not an INT4 hardware speed claim.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `pytorch-gpu`
-- **Recorded outcome:** Condition-specific tests exposed reversals that an aggregate average could conceal.
+| Measured field | Checked-in value |
+|---|---:|
+| Ordinary RMSE | 3.729115 |
+| Small-batch RMSE | 3.694930 |
+| Activation-outlier RMSE | 14.075421 |
+| Shifted-domain RMSE | 13.752637 |
+| Largest shifted max error | 67.176849 |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+Ordinary and batch-1 RMSE were about 3.73 and 3.69. Activation outliers raised RMSE to
+14.0754 and max error to 59.1648; the shifted domain produced RMSE 13.7526 and max error
+67.1768. Timing changes stayed tiny and varied by row.
 
-Design negative tests from known mechanisms and preserve a fallback for the slice that fails.
+An aggregate over all four cases could hide the roughly 3.7x error jump in the shifted
+regimes. The correct response is a targeted calibration, fallback, or rejection rule—not
+a global statement that W4 is acceptable.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Design negative tests from known mechanisms and preserve a fallback for the slice that fails.
+
+### Acceptance and rollback gate
+
+Maintain a condition-by-metric failure matrix with reversal thresholds and reproduce
+each failure independently before assigning a fallback.
+
+### How this conclusion can fail
+
+One stress tensor cannot represent production tail frequency, and synthetic timing with
+dequantized weights is not a native backend result. A matrix that lists long context or
+MoE without actually constructing cache or routing evidence would also be misleading;
+unexecuted axes must remain marked as future gates.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map BF16 matrix multiplication in four controlled
+input regimes and the same multiplication with group-128 INT4-dequantized weights back
+to the derivation. Verify the printed environment, then check that weight matrix and
+quantizer; only batch/distribution regime changes stayed fixed. Read output
+RMSE/cosine/max error and median/p90 timing per regime before applying the acceptance
+gate; the artifact-writing cell retains the complete structured result from the recorded
+run.
 
 ## Reproduce
 
@@ -100,21 +135,26 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/25-quantization-failure-modes/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Add a real KV-cache length sweep, rare-language/code/tool-use activation captures, and a
+toy MoE with expert-load imbalance. Define acceptance by slice, not only aggregate. Use
+the failing rows to design mixed-bit fallbacks and then rerun the full matrix.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The measured tensors and operations ran on CUDA through PyTorch. The result does not
+name a separate production backend unless an operator trace identifies it.
+
+The checked-in observation belongs to Lesson 25's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [TensorRT quantization schemes](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-schemes.html)
+- [AWQ paper](https://arxiv.org/abs/2306.00978)
+- [vLLM quantized KV cache](https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache/)

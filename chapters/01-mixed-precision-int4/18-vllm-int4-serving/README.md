@@ -2,92 +2,131 @@
 
 > **Puzzle:** If a checkpoint says AWQ or GPTQ, will vLLM necessarily run it efficiently on the current GPU?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+Serving performance belongs to a runtime, not to a checkpoint label. vLLM combines
+quantized linear kernels with scheduling, continuous batching, paged KV cache, prefix
+caching, and a request distribution. A PyTorch microbenchmark can warn about shape
+sensitivity, but it cannot stand in for requests-per-second or latency percentiles from
+a vLLM server.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Separate checkpoint-format support, hardware support, kernel dispatch, and service-load performance.
+2. Predict whether the reference W4 dequantized matrix path wins at every tested batch.
+3. Design a serving workload that reports TTFT and inter-token latency separately.
 
-A vLLM service couples checkpoint format, quantization backend, model runner, scheduler, paged KV cache, CUDA graphs, request batching, and sampling. Linear-kernel latency is only one component.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+A vLLM service couples checkpoint format, quantization backend, model runner, scheduler,
+paged KV cache, CUDA graphs, request batching, and sampling. Linear-kernel latency is
+only one component.
 
-- vLLM selects quantization kernels through a changing model-format and hardware compatibility matrix.
-- Serving performance includes scheduling, KV cache, batching, and request distribution—not only linear layers.
-- An import probe cannot replace a server benchmark.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | vLLM selects quantization kernels through a changing model-format and hardware compatibility matrix. |
+| 2 | Serving performance includes scheduling, KV cache, batching, and request distribution—not only linear layers. |
+| 3 | An import probe cannot replace a server benchmark. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-Prefill cost grows with prompt work while decode repeatedly processes small token steps and reads KV cache. Continuous batching improves utilization by combining requests, but queueing changes time-to-first-token and tail latency.
+Prefill cost grows with prompt work while decode repeatedly processes small token steps
+and reads KV cache. Continuous batching improves utilization by combining requests, but
+queueing changes time-to-first-token and tail latency.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+Prefill and Decode produce different matrix shapes and interact differently with
+batching. Service throughput also depends on arrival rate, prompt/output lengths,
+scheduler policy, cache capacity, and queueing. A weight-only checkpoint that loads
+successfully can still fall back to a slow kernel for some layers or lose its memory
+benefit to KV cache at long context.
 
-## 3. Engineering trade-off and failure mode
+The acceptance chain is format metadata → model load → quantized module/operator trace →
+output quality → controlled request workload → latency/throughput/capacity. An import
+probe only reaches the first compatibility edge.
 
-An INT4 backend can save weight memory and allow more concurrency yet be slower for batch-one shapes. Compatibility tables change with GPU generation and release.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Probe vLLM availability and benchmark a small PyTorch W4-dequantized matmul across batch sizes as a backend-independent shape warning.
 
-## 4. From theory to the notebook
-
-Probe vLLM availability and benchmark a small PyTorch W4-dequantized matmul across batch sizes as a backend-independent shape warning.
-
-The lab records vLLM availability and uses PyTorch batch-shape timings only as a warning; it labels vLLM service throughput `not_measured`.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | BF16 PyTorch matrix path for batches 1, 8, and 32 |
+| Candidate | reference dequantized W4 matrix path at the same shapes |
+| Held constant | weight/input shapes, GPU, warm-up, repetitions; no server or scheduler |
+| Measurements | operator median/p90 by batch plus vLLM installation and service-benchmark status |
+| Evidence label | `compatibility-probe` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`compatibility-probe`**.
+The lab records vLLM availability and uses PyTorch batch-shape timings only as a
+warning; it labels vLLM service throughput `not_measured`.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-The timing is labeled PyTorch GPU evidence. vLLM throughput remains `not_measured` when the package/server is absent.
+The notebook probes vLLM availability, then runs a backend-independent PyTorch shape
+experiment. The W4 candidate is a dequantized reference tensor, so it tests how the
+resulting matrix shape behaves—not vLLM's AWQ/GPTQ kernel. Results are stored under
+`pytorch_shape_warning` to make that boundary visible.
 
-Pass format/hardware load, operator, quality, TTFT, TPOT/inter-token latency, throughput, p90/p99, peak memory, and sustained-concurrency gates with a frozen request distribution.
+A true service cell would start a server, wait for readiness, issue a frozen request
+trace, collect TTFT/ITL/latency percentiles and throughput, then terminate cleanly. None
+of that is synthesized here.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `compatibility-probe`
-- **Recorded outcome:** PyTorch shape timing was measured separately; vLLM service performance requires an installed server and load test.
+| Measured field | Checked-in value |
+|---|---:|
+| vLLM installed | no |
+| Service benchmark | not_measured |
+| Batch 1 BF16 median | 0.019520 ms |
+| Batch 1 reference W4 median | 0.019424 ms |
+| Batch 32 BF16 median | 0.018976 ms |
+| Batch 32 reference W4 median | 0.019072 ms |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+The tiny matrix probe produced nearly tied medians: at batch 1, BF16 was 0.019520 ms and
+the reference W4-dequant tensor 0.019424 ms; at batch 8 they were 0.019168 and 0.018912
+ms; at batch 32 the candidate reversed slightly to 0.019072 versus 0.018976 ms. vLLM was
+not installed and service performance is explicitly `not_measured`.
 
-Pass checkpoint-format, hardware, load, operator, quality, and service-load gates before adopting a vLLM INT4 path.
+Sub-microsecond differences of this kind are not a serving result. They show that shape
+can reverse a small operator comparison and reinforce why a full request workload is
+needed.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Pass checkpoint-format, hardware, load, operator, quality, and service-load gates before adopting a vLLM INT4 path.
+
+### Acceptance and rollback gate
+
+Pass format/hardware load, operator, quality, TTFT, TPOT/inter-token latency,
+throughput, p90/p99, peak memory, and sustained-concurrency gates with a frozen request
+distribution.
+
+### How this conclusion can fail
+
+Reporting this table as vLLM speed would mislabel the backend and ignore scheduling.
+Other traps are benchmarking one warm cache prompt, mixing different model revisions,
+omitting output length, and comparing throughput at unequal latency or quality.
+Quantization compatibility matrices also change across versions, so the exact release
+must be pinned.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map BF16 PyTorch matrix path for batches 1, 8, and 32
+and reference dequantized W4 matrix path at the same shapes back to the derivation.
+Verify the printed environment, then check that weight/input shapes, GPU, warm-up,
+repetitions; no server or scheduler stayed fixed. Read operator median/p90 by batch plus
+vLLM installation and service-benchmark status before applying the acceptance gate; the
+artifact-writing cell retains the complete structured result from the recorded run.
 
 ## Reproduce
 
@@ -100,21 +139,26 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/18-vllm-int4-serving/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Install a supported vLLM release in a separate environment, load one documented AWQ or
+GPTQ model, confirm module/operator selection, and run `vllm bench serve` with fixed
+prompt/output distributions and concurrency. Report TTFT p50/p95, ITL, end-to-end
+latency, tokens/s, GPU memory, and rejected requests.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The named optional backend did not complete a native run in this environment. Package
+and failure evidence are retained; service or kernel performance is not inferred.
+
+The checked-in observation belongs to Lesson 18's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [vLLM quantization documentation](https://docs.vllm.ai/en/latest/features/quantization/)
+- [vLLM benchmark CLI](https://docs.vllm.ai/en/latest/cli/bench/serve.html)

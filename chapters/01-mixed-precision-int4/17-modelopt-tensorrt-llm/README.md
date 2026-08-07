@@ -2,92 +2,127 @@
 
 > **Puzzle:** Which evidence is lost when a quantized checkpoint is handed from one tool to another?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+Quantization pipelines cross tool boundaries: calibration may happen in ModelOpt,
+checkpoint export in one schema, and engine build in TensorRT-LLM. If model revision,
+recipe, scales, build flags, and rollback identity are not carried together, a fast
+engine cannot be reproduced or safely compared with its baseline.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. List the fields required to reproduce a quantized checkpoint-to-engine handoff.
+2. Explain why a scale checksum is useful but insufficient for engine identity.
+3. Predict the decision when neither ModelOpt nor TensorRT-LLM is installed.
 
-A ModelOpt-to-TensorRT-LLM handoff includes base revision, calibration corpus, recipe, per-layer exclusions, quantized tensor metadata, tokenizer, builder/runtime versions, engine flags, and rollback target.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+A ModelOpt-to-TensorRT-LLM handoff includes base revision, calibration corpus, recipe,
+per-layer exclusions, quantized tensor metadata, tokenizer, builder/runtime versions,
+engine flags, and rollback target.
 
-- A pipeline needs immutable model revision, calibration recipe, quantization metadata, build flags, and engine identity.
-- FP8, INT4, and FP4 are different recipes, not interchangeable compression levels.
-- Package availability is only the first compatibility gate.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | A pipeline needs immutable model revision, calibration recipe, quantization metadata, build flags, and engine identity. |
+| 2 | FP8, INT4, and FP4 are different recipes, not interchangeable compression levels. |
+| 3 | Package availability is only the first compatibility gate. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-Model optimization chooses and serializes a numerical representation; the engine builder lowers it to hardware tactics. Losing group axes, scale dtype, or recipe version at the boundary can change semantics even when files load.
+Model optimization chooses and serializes a numerical representation; the engine builder
+lowers it to hardware tactics. Losing group axes, scale dtype, or recipe version at the
+boundary can change semantics even when files load.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+A pipeline artifact is a directed chain: base model revision → calibration sample
+manifest → quantization recipe and scales → exported checkpoint → builder version/flags
+→ engine → quality and performance report. Hashes establish byte identity at a boundary;
+semantic fields establish how those bytes should be interpreted.
 
-## 3. Engineering trade-off and failure mode
+FP8, INT4, and FP4 are different graph and scaling recipes, not points on one
+interchangeable slider. The manifest should therefore make format, group/block size,
+calibration, handoff status, and rollback target explicit. Missing stages remain false
+rather than being inferred from a numerical probe.
 
-Pre-quantized checkpoints shorten deployment but constrain engine/version choices. Re-quantizing locally offers control but requires calibration reproducibility and more build time.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Generate and validate a quantization handoff manifest seeded by a CUDA numerical probe, while checking ModelOpt and TensorRT-LLM availability independently.
 
-## 4. From theory to the notebook
-
-Generate and validate a quantization handoff manifest seeded by a CUDA numerical probe, while checking ModelOpt and TensorRT-LLM availability independently.
-
-The notebook creates a complete handoff manifest and a CUDA numerical fingerprint while explicitly marking ModelOpt and TensorRT-LLM availability.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | versioned BF16 rollback revision |
+| Candidate | INT4 handoff manifest with scale fingerprint |
+| Held constant | fixed synthetic scale tensor, schema requirements, base/rollback identifiers |
+| Measurements | manifest completeness, SHA-256 fingerprint, package availability, numerical Q/DQ error |
+| Evidence label | `compatibility-probe` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`compatibility-probe`**.
+The notebook creates a complete handoff manifest and a CUDA numerical fingerprint while
+explicitly marking ModelOpt and TensorRT-LLM availability.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-A valid manifest is a reproducibility result, not an engine throughput result.
+The notebook generates a small CUDA quantization fingerprint, hashes the scale bytes,
+and builds a manifest with required fields. It independently probes ModelOpt and
+TensorRT-LLM and records both handoff flags. Validation checks schema completeness, not
+engine success.
 
-Validate a schema and hashes at each handoff, run a deterministic smoke sample, inspect engine layers, and keep quality and performance gates separate.
+This is intentionally a pipeline-contract lab. The synthetic Q/DQ error catches
+accidental recipe changes, while the hash catches byte changes; neither substitutes for
+loading the exported checkpoint or building an engine.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `compatibility-probe`
-- **Recorded outcome:** The handoff contract was validated; absent packages remain explicit and no engine benchmark was claimed.
+| Measured field | Checked-in value |
+|---|---:|
+| Manifest complete | yes |
+| Format / group | INT4 |
+| Group size | 64 |
+| ModelOpt handoff | no |
+| TensorRT-LLM handoff | no |
+| Numerical RMSE | 0.107446 |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+The manifest passed its required-field check and recorded scale SHA-256 `4fc993…d117e`.
+The numerical probe had RMSE 0.107446 and cosine 0.994265. Both ModelOpt and
+TensorRT-LLM handoff flags were false because the packages were unavailable.
 
-Treat every tool boundary as a versioned artifact handoff with explicit validation and rollback metadata.
+That combination is a valid reproducibility artifact and an explicit stop. It supports
+preparing the handoff schema, not claims about FP8/INT4/FP4 engine quality or
+throughput.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Treat every tool boundary as a versioned artifact handoff with explicit validation and rollback metadata.
+
+### Acceptance and rollback gate
+
+Validate a schema and hashes at each handoff, run a deterministic smoke sample, inspect
+engine layers, and keep quality and performance gates separate.
+
+### How this conclusion can fail
+
+Using `latest` model or container tags makes a manifest non-reproducible. Hashing scales
+but omitting the grouping axis can preserve bytes while changing meaning. Another
+failure is comparing engines built with different scheduler, tensor-parallel, or plugin
+settings and attributing the difference to quantization alone.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map versioned BF16 rollback revision and INT4 handoff
+manifest with scale fingerprint back to the derivation. Verify the printed environment,
+then check that fixed synthetic scale tensor, schema requirements, base/rollback
+identifiers stayed fixed. Read manifest completeness, SHA-256 fingerprint, package
+availability, numerical Q/DQ error before applying the acceptance gate; the
+artifact-writing cell retains the complete structured result from the recorded run.
 
 ## Reproduce
 
@@ -100,22 +135,28 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/17-modelopt-tensorrt-llm/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Run ModelOpt calibration in an isolated pinned container, export a checkpoint plus
+manifest, build a TensorRT-LLM engine, and add engine hash, builder flags, layer
+inspection, quality suite, and SLO report. Test that the rollback artifact loads under
+the same serving interface.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The named optional backend did not complete a native run in this environment. Package
+and failure evidence are retained; service or kernel performance is not inferred.
+
+The checked-in observation belongs to Lesson 17's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [TensorRT quantization schemes](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-schemes.html)
 - [NVIDIA Transformer Engine documentation](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/index.html)
+- [NVIDIA Model Optimizer documentation](https://nvidia.github.io/Model-Optimizer/)
+- [TensorRT-LLM documentation](https://nvidia.github.io/TensorRT-LLM/)

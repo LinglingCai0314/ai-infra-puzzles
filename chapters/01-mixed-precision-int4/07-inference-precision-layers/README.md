@@ -2,92 +2,129 @@
 
 > **Puzzle:** When a model is called INT4, which tensors are actually four-bit?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+Calling a model INT4 usually describes only part of its state. Weight-only layers may
+store four-bit codes while activations and accumulators use BF16, the KV cache grows
+with context, and temporary workspaces appear only at runtime. Capacity planning fails
+when those objects are collapsed into one advertised precision.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Write the KV-cache byte formula before looking at the projected values.
+2. Predict which memory account grows with sequence length and which stays fixed for a loaded model.
+3. Explain why checkpoint size cannot predict peak CUDA allocation by itself.
 
-Inference precision belongs to separate ledgers: persistent weights, per-step activations/workspaces, accumulators, and persistent-per-request KV cache. Weight-only INT4 normally leaves activation and accumulation formats wider.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+Inference precision belongs to separate ledgers: persistent weights, per-step
+activations/workspaces, accumulators, and persistent-per-request KV cache. Weight-only
+INT4 normally leaves activation and accumulation formats wider.
 
-- Weight-only quantization leaves activations and accumulation in a floating-point compute dtype.
-- KV cache grows with layers, sequence length, key/value heads, head dimension, batch, and cache dtype.
-- Peak memory also includes temporary workspaces and allocator reserve.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | Weight-only quantization leaves activations and accumulation in a floating-point compute dtype. |
+| 2 | KV cache grows with layers, sequence length, key/value heads, head dimension, batch, and cache dtype. |
+| 3 | Peak memory also includes temporary workspaces and allocator reserve. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-For a standard cache, `bytes = 2 × layers × batch × sequence × kv_heads × head_dim × bytes_per_element`; the leading two is for keys and values. Grouped-query attention changes `kv_heads`, not the number of query heads.
+For a standard cache, `bytes = 2 × layers × batch × sequence × kv_heads × head_dim ×
+bytes_per_element`; the leading two is for keys and values. Grouped-query attention
+changes `kv_heads`, not the number of query heads.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+For a decoder cache with batch B, layers L, sequence S, KV heads H, head dimension D,
+two tensors K and V, and b bytes per element, the leading storage is `2·B·L·S·H·D·b`.
+Weight storage is roughly `parameters × effective bits/8` plus scales and unquantized
+tensors. Activations depend on execution phase and liveness, while workspaces and
+allocator reserve depend on backend behavior.
 
-## 3. Engineering trade-off and failure mode
+These terms have different lifetimes. Weights persist after load, KV cache persists per
+active request, and many activations are temporary. That makes concurrency a
+multiplication on the cache term, not on the model weights. The ledger must keep bytes,
+lifecycle, and ownership together.
 
-Compressing weights creates room for cache or concurrency but does not shrink every runtime object. Cache quantization may increase capacity while adding Q/DQ work and attention error.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Build a memory ledger and allocate representative BF16 and INT8 KV tensors on CUDA to validate element-count arithmetic.
 
-## 4. From theory to the notebook
-
-Build a memory ledger and allocate representative BF16 and INT8 KV tensors on CUDA to validate element-count arithmetic.
-
-The lab validates the KV element-count formula with a live allocation and projects several context lengths without pretending to allocate a full model.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | BF16 KV-cache projection and a real BF16 K/V allocation |
+| Candidate | INT8 cache projection for the same model geometry |
+| Held constant | batch 1, 32 layers, 8 KV heads, head dimension 128, identical context lengths |
+| Measurements | projected cache GiB by context and byte count of an allocated representative tensor pair |
+| Evidence label | `pytorch-gpu` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`pytorch-gpu`**.
+The lab validates the KV element-count formula with a live allocation and projects
+several context lengths without pretending to allocate a full model.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-Report each object separately. A checkpoint-size reduction does not establish the same reduction in runtime peak memory.
+The notebook first calculates the formula for three sequence lengths, then allocates
+representative K and V tensors on CUDA and checks their exact element-count bytes. This
+joins arithmetic with a live tensor object without pretending to load a full model.
 
-Measure allocated/reserved/peak memory separately and reconcile them with object-level arithmetic. A checkpoint byte count is not a runtime memory result.
+Scales, paging fragmentation, prefix-cache blocks, and temporary attention workspaces
+are intentionally outside the simple projection. They belong in the next ledger revision
+when a named serving backend is tested.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `pytorch-gpu`
-- **Recorded outcome:** Weights, activations, and KV cache require separate precision and memory ledger entries.
+| Measured field | Checked-in value |
+|---|---:|
+| BF16 KV at 2,048 tokens | 0.250 GiB |
+| BF16 KV at 8,192 tokens | 1.000 GiB |
+| BF16 KV at 32,768 tokens | 4.000 GiB |
+| INT8 KV at 32,768 tokens | 2.000 GiB |
+| Live allocation probe | 16,777,216 bytes |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+For the fixed 32-layer geometry, projected BF16 KV storage was 0.25 GiB at 2,048 tokens,
+1.0 GiB at 8,192, and 4.0 GiB at 32,768. The INT8 arithmetic projection was exactly half
+each value. The live probe allocated two BF16 tensors of shape `[2, 4096, 8, 128]`
+totaling 16,777,216 bytes.
 
-Name the object and lifecycle whenever you name a precision: weights, activations, accumulators, or cache.
+The linear fourfold growth from 8K to 32K is the important systems result. Weight
+quantization does not change it. Cache quantization may increase feasible context or
+concurrency, but only after scale overhead, attention compatibility, error, and latency
+are measured.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Name the object and lifecycle whenever you name a precision: weights, activations, accumulators, or cache.
+
+### Acceptance and rollback gate
+
+Measure allocated/reserved/peak memory separately and reconcile them with object-level
+arithmetic. A checkpoint byte count is not a runtime memory result.
+
+### How this conclusion can fail
+
+A common error is multiplying weight memory by request count or forgetting to multiply
+cache by layers and by both K and V. Another is treating free memory reported before
+model load as deployable capacity. Allocator reserve, CUDA graphs, kernels, and safety
+margin must be added before setting concurrency.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map BF16 KV-cache projection and a real BF16 K/V
+allocation and INT8 cache projection for the same model geometry back to the derivation.
+Verify the printed environment, then check that batch 1, 32 layers, 8 KV heads, head
+dimension 128, identical context lengths stayed fixed. Read projected cache GiB by
+context and byte count of an allocated representative tensor pair before applying the
+acceptance gate; the artifact-writing cell retains the complete structured result from
+the recorded run.
 
 ## Reproduce
 
@@ -100,21 +137,26 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/07-inference-precision-layers/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Extend the ledger with grouped-query attention variants, tensor parallel sharding, cache
+block size, scale metadata, and allocator fragmentation. Then run a vLLM or TensorRT-LLM
+server and compare predicted versus observed cache capacity at 2K, 8K, and 32K contexts.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The measured tensors and operations ran on CUDA through PyTorch. The result does not
+name a separate production backend unless an operator trace identifies it.
+
+The checked-in observation belongs to Lesson 07's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [vLLM quantization documentation](https://docs.vllm.ai/en/latest/features/quantization/)
+- [vLLM cache configuration](https://docs.vllm.ai/en/stable/api/vllm/config/cache/)
+- [vLLM quantized KV cache](https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache/)

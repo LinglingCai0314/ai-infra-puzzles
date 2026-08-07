@@ -2,92 +2,126 @@
 
 > **Puzzle:** How many requests fit after INT4 weight compression, and which hidden assumptions can invalidate that number?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+Cloud cost begins with a memory feasibility ledger, but it cannot end there. Ideal
+weight bits, unquantized layers, scale metadata, KV cache per request, workspace,
+fragmentation, tensor parallelism, throughput, utilization, and hourly price all
+determine whether one GPU is usable and economical.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Estimate ideal BF16 and INT4 weight GiB for 70B parameters.
+2. Compute one-request KV cache for 80 layers, 8 KV heads, dimension 128, and 8K context.
+3. Predict whether ideal INT4 weights fit a 32,607 MiB RTX 5090 after a 10% reserve.
 
-Capacity uses total/usable HBM, weight and scale bytes, runtime reserve, workspaces, KV per request, fragmentation, tensor parallelism, and traffic context distribution.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+Capacity uses total/usable HBM, weight and scale bytes, runtime reserve, workspaces, KV
+per request, fragmentation, tensor parallelism, and traffic context distribution.
 
-- Capacity starts from usable memory after runtime reserve, weights, workspaces, and fragmentation allowance.
-- Per-request KV cache depends on context and cache dtype.
-- Cost per token also depends on achieved throughput and utilization, not GPU price alone.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | Capacity starts from usable memory after runtime reserve, weights, workspaces, and fragmentation allowance. |
+| 2 | Per-request KV cache depends on context and cache dtype. |
+| 3 | Cost per token also depends on achieved throughput and utilization, not GPU price alone. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-A first bound is `requests = floor((usable - weights - workspace) / KV_per_request)`. Cost per token then depends on hourly price divided by achieved, quality-approved tokens per hour.
+A first bound is `requests = floor((usable - weights - workspace) / KV_per_request)`.
+Cost per token then depends on hourly price divided by achieved, quality-approved tokens
+per hour.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+Weight bytes start at `P·bits/8`. KV bytes per request are `2·L·S·Hkv·D·cache_bytes`,
+then concurrency multiplies that term. A safety reserve should cover kernels, graph
+capture, allocator behavior, and unexpected peaks before dividing remaining bytes by
+per-request cache.
 
-## 3. Engineering trade-off and failure mode
+Even a memory fit does not produce a cost result. Cost per million tokens depends on
+achieved tokens/s, utilization, batching, power/cloud price, failure rate, and replica
+count. The notebook intentionally stops at arithmetic capacity when no engine throughput
+exists.
 
-INT4 ideal bytes may make weights fit while leaving no useful KV/concurrency margin. Multi-GPU sharding adds communication and changes both cost and latency.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Read live free memory from the RTX GPU and build BF16 versus INT4 capacity projections for a 70B-class model without allocating the model.
 
-## 4. From theory to the notebook
-
-Read live free memory from the RTX GPU and build BF16 versus INT4 capacity projections for a 70B-class model without allocating the model.
-
-The lab seeds a 70B arithmetic model with live RTX 5090 memory but explicitly does not allocate or benchmark a 70B model.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | 70B BF16 weights with BF16 KV cache |
+| Candidate | ideal INT4 weights with BF16 or INT8 KV cache |
+| Held constant | 70B parameters, 80 layers, 8 KV heads, head dimension 128, context 8192, 10% reserve |
+| Measurements | live total/free GiB, weight GiB, KV GiB/request, fit boolean, projected request count |
+| Evidence label | `capacity-model` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`capacity-model`**.
+The lab seeds a 70B arithmetic model with live RTX 5090 memory but explicitly does not
+allocate or benchmark a 70B model.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-Label the result as a capacity model. It cannot establish latency, model quality, or whether a particular 70B engine will load.
+The notebook reads live RTX 5090 memory, calculates three plans, reserves 10%, and only
+then computes request capacity. It records zero rather than a negative or optimistic
+concurrency when weights already exceed usable memory.
 
-Use ranges and safety margins, then validate with the actual engine's measured peak, sustained concurrency, SLO, utilization, and cloud billing unit.
+The INT4 term is explicitly ideal: it excludes scales, padding, embeddings/norms
+retained in higher precision, engine, and workspace. That label prevents the arithmetic
+from being mistaken for a successful model load.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `capacity-model`
-- **Recorded outcome:** Arithmetic capacity projections used live GPU memory but did not claim that a 70B engine loaded or met latency SLOs.
+| Measured field | Checked-in value |
+|---|---:|
+| Live total memory | 31.358 GiB |
+| BF16 weight projection | 130.385 GiB |
+| Ideal INT4 weight projection | 32.596 GiB |
+| BF16 KV per request | 2.500 GiB |
+| INT8 KV per request | 1.250 GiB |
+| Ideal INT4 single-GPU fit | no |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+Live total memory was 31.358 GiB. BF16 weights projected to 130.385 GiB; ideal INT4
+still required 32.596 GiB, already larger than total memory and larger still relative to
+the 10% reserve. BF16 KV cache was 2.5 GiB/request and INT8 KV 1.25 GiB/request, but
+every single-GPU plan correctly returned zero requests because weights did not fit.
 
-Use ranges and safety margins, then validate the chosen point with the actual engine and traffic distribution.
+KV compression cannot rescue a base model that fails the weight-fit gate. A real 70B
+deployment therefore needs further compression/overhead reduction, multi-GPU sharding,
+CPU offload, or a different GPU class before concurrency is discussed.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Use ranges and safety margins, then validate the chosen point with the actual engine and traffic distribution.
+
+### Acceptance and rollback gate
+
+Use ranges and safety margins, then validate with the actual engine's measured peak,
+sustained concurrency, SLO, utilization, and cloud billing unit.
+
+### How this conclusion can fail
+
+Using decimal GB instead of binary GiB can create misleading margin near capacity. Ideal
+four-bit arithmetic omits metadata and high-precision tensors, and free memory on an
+otherwise empty process is not engine capacity. Cost comparisons without throughput and
+quality at equal SLO are also meaningless.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map 70B BF16 weights with BF16 KV cache and ideal
+INT4 weights with BF16 or INT8 KV cache back to the derivation. Verify the printed
+environment, then check that 70B parameters, 80 layers, 8 KV heads, head dimension 128,
+context 8192, 10% reserve stayed fixed. Read live total/free GiB, weight GiB, KV
+GiB/request, fit boolean, projected request count before applying the acceptance gate;
+the artifact-writing cell retains the complete structured result from the recorded run.
 
 ## Reproduce
 
@@ -100,21 +134,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/28-gpu-capacity-cost/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Add measured overhead from a real engine, tensor-parallel sharding/communication,
+fragmentation, and batch-dependent workspaces. Once the model loads, benchmark sustained
+tokens/s and compute cost per million tokens at equal quality and p95 latency across
+candidate GPU plans.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The calculation uses live GPU information and/or a CUDA probe, but it remains a planning
+model until a named full engine, quality suite, and service workload execute.
+
+The checked-in observation belongs to Lesson 28's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [vLLM quantization documentation](https://docs.vllm.ai/en/latest/features/quantization/)
+- [vLLM cache configuration](https://docs.vllm.ai/en/stable/api/vllm/config/cache/)
+- [CUDA Programming Guide](https://docs.nvidia.com/cuda/cuda-programming-guide/index.html)

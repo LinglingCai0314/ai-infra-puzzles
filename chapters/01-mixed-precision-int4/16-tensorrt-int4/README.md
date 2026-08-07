@@ -2,92 +2,126 @@
 
 > **Puzzle:** What must be present in a graph and serialized weight buffer before TensorRT can consume INT4 weights?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+TensorRT INT4 is not merely a tensor cast. The graph must express quantize/dequantize
+semantics, weights must use supported per-block scales, and signed four-bit codes must
+be packed two per byte in the expected order. A correct reference packer is a
+prerequisite, not evidence that an engine was built.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Write the signed INT4 code range and calculate packed bytes for a 512×1024 matrix.
+2. Predict the metadata and error implications of block size 64.
+3. Separate Q/DQ correctness, packing correctness, engine build, operator trace, and timing into distinct gates.
 
-TensorRT explicit quantization represents quantization choices with Q/DQ semantics and consumes packed low-bit weights plus scales under supported block/layout constraints.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+TensorRT explicit quantization represents quantization choices with Q/DQ semantics and
+consumes packed low-bit weights plus scales under supported block/layout constraints.
 
-- Explicit quantization represents scale decisions with Quantize/Dequantize semantics.
-- Signed INT4 codes occupy two nibbles per byte when packed.
-- TensorRT support has specific block-size and placement rules that a generic fake-quant experiment cannot prove.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | Explicit quantization represents scale decisions with Quantize/Dequantize semantics. |
+| 2 | Signed INT4 codes occupy two nibbles per byte when packed. |
+| 3 | TensorRT support has specific block-size and placement rules that a generic fake-quant experiment cannot prove. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-For signed INT4, two 4-bit two's-complement codes occupy one byte. Block Q/DQ applies one scale to a supported group, reconstructing floating-point values for the consuming operation or enabling a fused weight-only implementation.
+For signed INT4, two 4-bit two's-complement codes occupy one byte. Block Q/DQ applies
+one scale to a supported group, reconstructing floating-point values for the consuming
+operation or enabling a fused weight-only implementation.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+For TensorRT-style symmetric INT4, codes lie in `[-8,7]` and dequantization multiplies
+by a per-block scale. Two four-bit two's-complement nibbles fit in one byte; unpacking
+must restore sign correctly. With 524,288 weights, ideal packed code storage is 262,144
+bytes before scales and alignment.
 
-## 3. Engineering trade-off and failure mode
+Graph Q/DQ nodes preserve the scale decision across export and allow the compiler to
+place quantized boundaries. TensorRT currently treats INT4 as weight-only and constrains
+block sizes/axes. A Python Q/DQ tensor can test the math, but only a serialized engine
+and inspected layer implementation establish TensorRT execution.
 
-A valid packer can still produce an engine-incompatible graph; a valid graph can still select a slow tactic. Semantics, serialization, build, kernel selection, and runtime are separate gates.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Perform block INT4 Q/DQ and nibble packing on CUDA, verify exact unpacking, and separately probe the TensorRT package.
 
-## 4. From theory to the notebook
-
-Perform block INT4 Q/DQ and nibble packing on CUDA, verify exact unpacking, and separately probe the TensorRT package.
-
-The CUDA lab validates block Q/DQ and exact nibble round-trip while an independent package probe prevents a false TensorRT-engine claim.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | floating-point 512×1024 weight tensor |
+| Candidate | block-64 INT4 Q/DQ plus explicit nibble pack/unpack |
+| Held constant | weight tensor, grouping axis, scale rule, code order, CUDA numerical reference |
+| Measurements | packed bytes, exact code round-trip, RMSE/cosine, TensorRT package probe |
+| Evidence label | `pytorch-gpu` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`pytorch-gpu`**.
+The CUDA lab validates block Q/DQ and exact nibble round-trip while an independent
+package probe prevents a false TensorRT-engine claim.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-Packing correctness and Q/DQ error are real; engine build and latency remain unmeasured unless TensorRT is installed and executes.
+The notebook quantizes blocks, packs adjacent signed codes into low/high nibbles,
+unpacks them, restores sign, and asserts exact equality with the original codes. It then
+dequantizes for error measurement. A separate import probe records whether TensorRT is
+available.
 
-Round-trip every packed code, verify scale axis/block size and ONNX Q/DQ placement, inspect the built engine, then benchmark the engine against the same baseline.
+This ordering distinguishes serialization bugs from numerical loss. Exact code
+round-trip is necessary even when dequantized RMSE looks plausible, because a
+nibble-order or sign bug can be masked by aggregate statistics.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `pytorch-gpu`
-- **Recorded outcome:** Block Q/DQ and nibble packing were validated; TensorRT engine execution was not inferred from the reference path.
+| Measured field | Checked-in value |
+|---|---:|
+| Weight shape | 512 × 1024 |
+| Group size | 64 |
+| Packed code bytes | 262,144 bytes |
+| Exact pack/unpack | yes |
+| Q/DQ RMSE | 0.107706 |
+| TensorRT installed | no |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+The 512×1024 matrix produced exactly 262,144 packed bytes, and every code survived
+pack/unpack. Block-64 Q/DQ yielded RMSE 0.107706 and cosine 0.994257. TensorRT was not
+installed, so no engine, TensorRT layer, or latency result exists.
 
-Validate graph semantics, packing, scales, engine inspection, and timing as separate gates.
+The outcome validates a semantic reference and serialized code layout. It does not
+validate TensorRT's supported axis rules for a concrete ONNX graph or the performance of
+an INT4 WoQ kernel.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Validate graph semantics, packing, scales, engine inspection, and timing as separate gates.
+
+### Acceptance and rollback gate
+
+Round-trip every packed code, verify scale axis/block size and ONNX Q/DQ placement,
+inspect the built engine, then benchmark the engine against the same baseline.
+
+### How this conclusion can fail
+
+Mistakes include treating unsigned nibbles as signed values, reversing low/high order,
+dropping scale layout, or claiming 0.5 byte per weight without metadata and padding. A
+successful engine build can still insert dequantize work that defeats the expected
+benefit, so engine inspection is required.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map floating-point 512×1024 weight tensor and
+block-64 INT4 Q/DQ plus explicit nibble pack/unpack back to the derivation. Verify the
+printed environment, then check that weight tensor, grouping axis, scale rule, code
+order, CUDA numerical reference stayed fixed. Read packed bytes, exact code round-trip,
+RMSE/cosine, TensorRT package probe before applying the acceptance gate; the
+artifact-writing cell retains the complete structured result from the recorded run.
 
 ## Reproduce
 
@@ -100,21 +134,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/16-tensorrt-int4/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Export a minimal Q/DQ ONNX graph with block size 64, build it under a pinned TensorRT
+version, inspect the engine layers, and compare outputs with the reference packer. Then
+profile latency and memory for several M dimensions to find where WoQ becomes
+beneficial.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The measured tensors and operations ran on CUDA through PyTorch. The result does not
+name a separate production backend unless an operator trace identifies it.
+
+The checked-in observation belongs to Lesson 16's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [TensorRT quantization schemes](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-schemes.html)
+- [TensorRT capabilities](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/capabilities.html)
+- [TensorRT quantization workflows](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-workflows.html)

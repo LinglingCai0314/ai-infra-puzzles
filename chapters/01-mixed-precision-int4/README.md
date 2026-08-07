@@ -21,6 +21,13 @@ Concrete object → Mechanism/equation → Engineering trade-off
                → Reproducible evidence → Acceptance or rollback
 ```
 
+Lessons 02–30 are full tutorials rather than artifact indexes. Each one derives
+its mechanism from concrete tensors, freezes a baseline/candidate protocol,
+places selected RTX 5090 measurements directly in the note, explains those
+numbers, walks through the notebook code, and ends with a lesson-specific
+failure analysis and extension. The notebooks retain the complete original GPU
+code and outputs while surrounding them with theory before and after execution.
+
 This retains the useful conceptual path of the study curriculum while replacing
 generic prose with lesson-specific formulas, tensor objects, failure modes, and
 experiments. A numerical model can explain a mechanism; it cannot stand in for
@@ -76,6 +83,7 @@ Run all lightweight labs from the repository root with:
 ```bash
 python3 scripts/execute_chapter_notebooks.py --chapter 01
 python3 scripts/validate_chapter.py 01
+python3 scripts/audit_chapter01_delivery.py
 ```
 
 Lesson 01 is a full Qwen/TorchAO comparison and may download a model. Lessons

@@ -2,92 +2,126 @@
 
 > **Puzzle:** Can activation statistics tell us which weight channels deserve more protection?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+AWQ begins from the observation that a small subset of weights can dominate model
+behavior when paired with large activation channels. Rather than minimizing average
+weight error, it uses activation statistics to search a per-channel scaling that
+protects salient weights while retaining a hardware-friendly weight-only layout.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Predict whether the largest weight magnitudes alone identify the best channels to protect.
+2. Explain why AWQ evaluates layer outputs on held-out activations instead of only weight reconstruction.
+3. Predict the shape of error as scaling strength increases from zero to one.
 
-AWQ studies which weight channels are salient under observed activations and protects them within a weight-only W4A16 deployment path.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+AWQ studies which weight channels are salient under observed activations and protects
+them within a weight-only W4A16 deployment path.
 
-- AWQ identifies salient weights through activation-aware evidence.
-- Equivalent scaling can move quantization difficulty while leaving the original floating-point function unchanged.
-- W4A16 describes weight and activation precision; it does not mean the full graph is four-bit.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | AWQ identifies salient weights through activation-aware evidence. |
+| 2 | Equivalent scaling can move quantization difficulty while leaving the original floating-point function unchanged. |
+| 3 | W4A16 describes weight and activation precision; it does not mean the full graph is four-bit. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-Channel scaling can preserve the floating-point linear transform while changing how weight ranges are shared before INT4 rounding. Activation statistics guide the scale search because frequently excited channels can amplify small weight errors.
+Channel scaling can preserve the floating-point linear transform while changing how
+weight ranges are shared before INT4 rounding. Activation statistics guide the scale
+search because frequently excited channels can amplify small weight errors.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+For a linear layer, equivalent channel scaling can transform weights and
+inverse-transform activations without changing the floating-point result. AWQ searches a
+scaling strength informed by activation magnitudes so quantization gives more effective
+resolution to salient channels. The W4A16 label means four-bit weight storage with
+floating-point activations; accumulation and other layers still need explicit dtypes.
 
-## 3. Engineering trade-off and failure mode
+Scaling too little leaves salient weights exposed. Scaling too aggressively expands
+other channels and makes their shared quantization ranges coarse. The optimum is
+therefore empirical and depends on calibration coverage, group size, layer distribution,
+and the held-out objective.
 
-Protecting more channels or searching more scales costs calibration time and may reduce compression or kernel regularity. Lower weight MAE does not guarantee lower language-model loss.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Search activation-aware per-channel scaling strengths for a toy W4A16 layer and compare output error with naive INT4.
 
-## 4. From theory to the notebook
-
-Search activation-aware per-channel scaling strengths for a toy W4A16 layer and compare output error with naive INT4.
-
-The notebook freezes calibration activations, searches scaling strength, and chooses by held-out layer-output error rather than weight error.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | uniform W4A16 reference quantization at alpha 0 |
+| Candidate | activation-aware channel scaling across alpha 0.25–1.0 |
+| Held constant | same weights, calibration/held-out split, group quantizer, activation distribution |
+| Measurements | held-out layer-output RMSE, MAE, cosine and selected alpha |
+| Evidence label | `numerical-model` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`numerical-model`**.
+The notebook freezes calibration activations, searches scaling strength, and chooses by
+held-out layer-output error rather than weight error.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-Use held-out output error and a frozen search set. Weight-only mean error is not the optimization target.
+The notebook freezes a calibration activation tensor, derives channel importance,
+searches five scaling strengths, and evaluates every candidate on held-out activations.
+The best alpha is chosen from output error, not weight error.
 
-Separate search/calibration from held-out evaluation, report protected fraction and group size, and prove a W4A16 operator executed before making speed claims.
+The code is an AWQ-inspired numerical model. It does not implement the paper's complete
+search, protect exactly the same salient set, reorder or pack weights, or dispatch an
+AWQ CUDA kernel. Those omissions are stated so the mechanism lesson is not confused with
+backend reproduction.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `numerical-model`
-- **Recorded outcome:** Activation-aware scaling changed held-out W4A16 output error; no production AWQ kernel was claimed.
+| Measured field | Checked-in value |
+|---|---:|
+| Selected alpha | 0.250000 |
+| Alpha 0 RMSE | 2.771756 |
+| Alpha 0.25 RMSE | 2.273520 |
+| Alpha 0.5 RMSE | 2.562305 |
+| Alpha 1 RMSE | 5.898383 |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+Held-out RMSE improved from 2.771756 at alpha 0 to 2.273520 at alpha 0.25, then worsened
+to 2.562305, 3.748475, and 5.898383 as alpha increased. Cosine similarity followed the
+same pattern and peaked at 0.996096 for alpha 0.25.
 
-Activation-aware protection is a model-quality method; deployment speed still requires a compatible W4A16 kernel.
+The non-monotonic curve is the lesson: activation-aware protection can help, but more
+scaling is not more protection once it transfers too much range pressure elsewhere. The
+selected value is valid only for this frozen toy distribution.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Activation-aware protection is a model-quality method; deployment speed still requires a compatible W4A16 kernel.
+
+### Acceptance and rollback gate
+
+Separate search/calibration from held-out evaluation, report protected fraction and
+group size, and prove a W4A16 operator executed before making speed claims.
+
+### How this conclusion can fail
+
+Using one activation batch for both search and final evaluation can overfit the scale.
+Reporting W4 storage without the higher-precision activation path misstates memory and
+compute. And a numerical improvement does not imply latency improvement; the online
+dequantization and packed GEMM path must exist for the chosen shape.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map uniform W4A16 reference quantization at alpha 0
+and activation-aware channel scaling across alpha 0.25–1.0 back to the derivation.
+Verify the printed environment, then check that same weights, calibration/held-out
+split, group quantizer, activation distribution stayed fixed. Read held-out layer-output
+RMSE, MAE, cosine and selected alpha before applying the acceptance gate; the
+artifact-writing cell retains the complete structured result from the recorded run.
 
 ## Reproduce
 
@@ -100,21 +134,26 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/12-awq/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Repeat the search across several calibration domains and report how stable the selected
+alpha is. Compare magnitude-only, activation-only, and joint rankings at equal average
+bit width. Then test an official AWQ checkpoint with operator evidence and
+batch/sequence sweeps in a serving runtime.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The CUDA numerical experiment isolates an algorithmic mechanism. It is not the paper's
+complete implementation and does not establish a production kernel speedup.
+
+The checked-in observation belongs to Lesson 12's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [AWQ paper](https://arxiv.org/abs/2306.00978)
+- [AWQ reference implementation](https://github.com/mit-han-lab/llm-awq)

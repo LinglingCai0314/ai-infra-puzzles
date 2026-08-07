@@ -2,92 +2,127 @@
 
 > **Puzzle:** Does Blackwell hardware support mean every framework build exposes the same FP8 or NVFP4 path?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+A dtype name can exist at four levels: a mathematical format, a hardware instruction, a
+library recipe, and a framework operator. Blackwell support does not guarantee that the
+installed PyTorch, Transformer Engine, TensorRT, or ModelOpt build exposes the same FP8
+or NVFP4 path. Each layer must be probed independently.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Distinguish E4M3 FP8 from E5M2 and ordinary INT4 from block-scaled NVFP4.
+2. Predict whether the installed PyTorch build can execute a scaled FP8 matrix multiply.
+3. State what additional evidence is needed before claiming NVFP4 performance.
 
-Keep four layers distinct: numerical format, hardware instruction, library recipe, and framework/operator API. `torch.float8_*` existing does not alone prove an FP8 GEMM path.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+Keep four layers distinct: numerical format, hardware instruction, library recipe, and
+framework/operator API. `torch.float8_*` existing does not alone prove an FP8 GEMM path.
 
-- A format definition, hardware instruction, library API, and framework kernel are four separate layers.
-- FP8 variants trade exponent range against fraction precision.
-- NVFP4 adds block scaling; it is not ordinary uniform INT4.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | A format definition, hardware instruction, library API, and framework kernel are four separate layers. |
+| 2 | FP8 variants trade exponent range against fraction precision. |
+| 3 | NVFP4 adds block scaling; it is not ordinary uniform INT4. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-E4M3 favors precision with less range; E5M2 favors range. Scaled FP8 matmul applies explicit scale factors. Blackwell-specific MXFP8/NVFP4 add block-scale structure and require matching recipes and kernels.
+E4M3 favors precision with less range; E5M2 favors range. Scaled FP8 matmul applies
+explicit scale factors. Blackwell-specific MXFP8/NVFP4 add block-scale structure and
+require matching recipes and kernels.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+FP8 E4M3 allocates four exponent and three fraction bits after sign, trading range for
+precision; E5M2 spends another bit on range. NVFP4 uses FP4 E2M1 values with block
+scaling, so its real representation includes both four-bit data and scale hierarchy.
+TensorRT's current scheme uses block size 16 for NVFP4, while framework APIs and
+supported axes remain version-specific.
 
-## 3. Engineering trade-off and failure mode
+Scaled matrix multiplication also requires choosing input and output scales. A
+successful `torch._scaled_mm` call proves one framework-level path for one shape and
+format; it does not prove Transformer Engine recipes or TensorRT NVFP4 kernels.
 
-Smaller formats reduce traffic and raise theoretical throughput but add scale selection, saturation risk, metadata, and software compatibility constraints.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Attempt native PyTorch FP8 GEMM on the RTX GPU, record error and timing when supported, and separately probe Transformer Engine and NVFP4 APIs.
 
-## 4. From theory to the notebook
-
-Attempt native PyTorch FP8 GEMM on the RTX GPU, record error and timing when supported, and separately probe Transformer Engine and NVFP4 APIs.
-
-The lab calls PyTorch scaled FP8 matmul when available and leaves Transformer Engine/NVFP4 unmeasured rather than equating hardware generation with framework support.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | higher-precision reference matrix multiplication for error comparison |
+| Candidate | PyTorch scaled FP8 E4M3 GEMM on RTX 5090 |
+| Held constant | 1024-class matrix shape, scaling procedure, warm-up, fifteen timing samples |
+| Measurements | API success, RMSE/cosine, median/p90, library availability, NVFP4 status |
+| Evidence label | `pytorch-gpu` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`pytorch-gpu`**.
+The lab calls PyTorch scaled FP8 matmul when available and leaves Transformer
+Engine/NVFP4 unmeasured rather than equating hardware generation with framework support.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-A successful float8 PyTorch GEMM proves that path only. NVFP4 remains unmeasured without its library recipe and operator evidence.
+The notebook checks for float8 dtype support and calls `torch._scaled_mm` with explicit
+scales. It compares the output with a higher-precision reference and times repeated CUDA
+execution. Separate probes record Transformer Engine availability and leave NVFP4
+`not_measured` when its recipe/operator is unavailable.
 
-Record compute capability, dtype/API, scaling recipe, operator success, numerical error, timing, and library version separately for FP8, MXFP8, and NVFP4.
+This design prevents the real FP8 result from being generalized to a different format.
+The JSON names the exact API so a future software change can be detected.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `pytorch-gpu`
-- **Recorded outcome:** Framework-level FP8 was tested independently; NVFP4 requires a supported library recipe and operator evidence.
+| Measured field | Checked-in value |
+|---|---:|
+| PyTorch API | torch._scaled_mm |
+| FP8 GEMM | success |
+| Median | 0.017568 ms |
+| FP8 RMSE | 1.208455 |
+| Transformer Engine installed | no |
+| NVFP4 backend | not_measured |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+The scaled FP8 GEMM succeeded through `torch._scaled_mm`, with median 0.017568 ms and
+p90 0.018560 ms over fifteen samples. Output cosine was 0.999285 and RMSE 1.208455 for
+the tested scale and shape. Transformer Engine was not installed, and NVFP4 remained
+`not_measured`.
 
-Publish a format-by-hardware-by-library matrix, not a single `supported` checkbox.
+The measured path is therefore real PyTorch GPU evidence for FP8, not proof of a
+Transformer Engine or NVFP4 backend. The absolute error also shows why format support
+must be paired with scaling and quality policy.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Publish a format-by-hardware-by-library matrix, not a single `supported` checkbox.
+
+### Acceptance and rollback gate
+
+Record compute capability, dtype/API, scaling recipe, operator success, numerical error,
+timing, and library version separately for FP8, MXFP8, and NVFP4.
+
+### How this conclusion can fail
+
+Casting tensors to a float8 dtype without a successful matrix operator proves storage
+only. Comparing raw FP8 latency against a different shape or excluding scale computation
+can misstate speed. Treating NVFP4 as signed uniform INT4 loses its block-scale
+semantics entirely.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map higher-precision reference matrix multiplication
+for error comparison and PyTorch scaled FP8 E4M3 GEMM on RTX 5090 back to the
+derivation. Verify the printed environment, then check that 1024-class matrix shape,
+scaling procedure, warm-up, fifteen timing samples stayed fixed. Read API success,
+RMSE/cosine, median/p90, library availability, NVFP4 status before applying the
+acceptance gate; the artifact-writing cell retains the complete structured result from
+the recorded run.
 
 ## Reproduce
 
@@ -100,22 +135,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/20-fp8-fp4-nvfp4/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Install a matching Transformer Engine or TensorRT stack in isolation, run documented FP8
+and NVFP4 recipes, and capture operator identity, scale granularity, end-to-end scale
+overhead, error, and latency. Build a matrix with rows for format and columns for
+hardware, library, API, operator, and tested status.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The measured tensors and operations ran on CUDA through PyTorch. The result does not
+name a separate production backend unless an operator trace identifies it.
+
+The checked-in observation belongs to Lesson 20's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [NVIDIA Transformer Engine documentation](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/index.html)
 - [TensorRT quantization schemes](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-schemes.html)
+- [TensorRT DynamicQuantize operator](https://docs.nvidia.com/deeplearning/tensorrt/10.x.x/_static/operators/DynamicQuantize.html)

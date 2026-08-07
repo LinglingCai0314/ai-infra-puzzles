@@ -2,92 +2,127 @@
 
 > **Puzzle:** Why can a text-only calibration set miss important failure modes in a vision-language model?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+A multimodal model does not have one activation distribution. Patch projection sees
+pixels and local contrast, the vision encoder sees image tokens, the connector maps
+modalities, and the language decoder sees text-conditioned states. Calibrating only text
+can leave the vision path with unobserved ranges and brittle low-bit behavior.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Predict how high-contrast image patches change the output error of one quantized patch projection.
+2. Identify the calibration strata needed for a vision-language model rather than a text-only LLM.
+3. Explain why a patch-projection result cannot establish full VLM quality.
 
-A vision-language system contains a vision encoder, patch/token embedding, projector, cross- or self-attention, language model, and KV cache. Each component sees a different activation distribution.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+A vision-language system contains a vision encoder, patch/token embedding, projector,
+cross- or self-attention, language model, and KV cache. Each component sees a different
+activation distribution.
 
-- Vision encoders see patch distributions, image contrast, and positional structure unlike text MLP activations.
-- A multimodal pipeline contains encoder, projector, language model, and attention/cache objects.
-- Coverage and fallback decisions can differ by component.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | Vision encoders see patch distributions, image contrast, and positional structure unlike text MLP activations. |
+| 2 | A multimodal pipeline contains encoder, projector, language model, and attention/cache objects. |
+| 3 | Coverage and fallback decisions can differ by component. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-Patch projection maps local pixel statistics into tokens; contrast and modality shifts can create channel ranges absent from text calibration. Quantization error can then propagate through normalization and attention.
+Patch projection maps local pixel statistics into tokens; contrast and modality shifts
+can create channel ranges absent from text calibration. Quantization error can then
+propagate through normalization and attention.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+A ViT patch projection is a convolution with kernel and stride equal to patch size. For
+16×16 RGB patches, each output token combines 768 input values. Weight quantization
+error is filtered by the image distribution: high-contrast or sparse extreme pixels can
+amplify particular columns that ordinary Gaussian-like calibration does not emphasize.
 
-## 3. Engineering trade-off and failure mode
+Farther downstream, cross-attention and modality connectors introduce their own outliers
+and quality objectives. A sound plan therefore calibrates and evaluates per component
+and per modality slice, then rejoins them with end-to-end captioning, VQA, OCR, or
+grounding tasks.
 
-Quantizing the large language component may save most bytes, while quantizing a sensitive bridge can cause disproportionate quality loss. Component-specific fallback may be cheaper than one global dtype.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Quantize a CUDA patch-projection weight and compare reconstruction error for ordinary and high-contrast synthetic images.
 
-## 4. From theory to the notebook
-
-Quantize a CUDA patch-projection weight and compare reconstruction error for ordinary and high-contrast synthetic images.
-
-The notebook isolates a patch projection and compares normal versus high-contrast image distributions, carefully avoiding a full-VLM claim.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | floating-point 64-channel, 16×16 patch projection |
+| Candidate | group-192 INT4-dequantized projection weights |
+| Held constant | same weights, image shape, projection stride, normal/high-contrast paired inputs |
+| Measurements | projection-output RMSE/MAE/cosine/max error for each image distribution |
+| Evidence label | `pytorch-gpu` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`pytorch-gpu`**.
+The notebook isolates a patch projection and compares normal versus high-contrast image
+distributions, carefully avoiding a full-VLM claim.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-Compare domain-specific errors and keep the experiment scoped to the patch projection, not an entire VLM quality claim.
+The notebook isolates the first vision operation so tensor axes remain readable: weights
+have shape `[64,3,16,16]`, then flatten to groups for quantization and return to
+convolution layout. It evaluates the same candidate on ordinary random images and images
+with periodic contrast spikes.
 
-Stratify calibration/evaluation by modality, resolution, prompt length, OCR/chart cases, and component; measure component error plus end-task multimodal quality.
+This component test answers whether input distribution changes local error. It
+deliberately excludes transformer blocks, the language decoder, preprocessing, and task
+metrics, so its conclusion stops before full-model quality.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `pytorch-gpu`
-- **Recorded outcome:** Patch-projection error changed with image distribution; no full VLM quality conclusion was made.
+| Measured field | Checked-in value |
+|---|---:|
+| Patch weight shape | 64 × 3 × 16 × 16 |
+| Normal-image RMSE | 0.040851 |
+| High-contrast RMSE | 0.063011 |
+| Normal max error | 0.202358 |
+| High-contrast max error | 0.358466 |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+For normal images, projection RMSE was 0.040851 with cosine 0.997531. High-contrast
+patches increased RMSE to 0.063011 and max absolute error from 0.202358 to 0.358466,
+while cosine remained 0.997666.
 
-Calibrate and regress each modality and bridge component rather than applying a text-only decision globally.
+The higher absolute error under contrast shift shows why one calibration distribution is
+insufficient even when cosine looks stable. Whether that change affects a VLM answer
+depends on downstream normalization and attention, which this lab does not model.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Calibrate and regress each modality and bridge component rather than applying a text-only decision globally.
+
+### Acceptance and rollback gate
+
+Stratify calibration/evaluation by modality, resolution, prompt length, OCR/chart cases,
+and component; measure component error plus end-task multimodal quality.
+
+### How this conclusion can fail
+
+A text-only calibration set never exercises the patch projection. Average image
+embeddings can also hide OCR, diagrams, dark images, or saturated regions. Another
+mistake is to use image reconstruction metrics for a model whose deployment objective is
+answer correctness or grounding.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map floating-point 64-channel, 16×16 patch projection
+and group-192 INT4-dequantized projection weights back to the derivation. Verify the
+printed environment, then check that same weights, image shape, projection stride,
+normal/high-contrast paired inputs stayed fixed. Read projection-output
+RMSE/MAE/cosine/max error for each image distribution before applying the acceptance
+gate; the artifact-writing cell retains the complete structured result from the recorded
+run.
 
 ## Reproduce
 
@@ -100,21 +135,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/21-multimodal-quantization/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Capture activation ranges from photographs, documents, charts, OCR-heavy images, and
+high-contrast synthetic cases. Quantize vision encoder, connector, and decoder
+separately, then run end-to-end task slices. Use mixed precision when one modality
+component is consistently more sensitive.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The measured tensors and operations ran on CUDA through PyTorch. The result does not
+name a separate production backend unless an operator trace identifies it.
+
+The checked-in observation belongs to Lesson 21's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [TensorRT quantization schemes](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-schemes.html)
+- [AWQ paper](https://arxiv.org/abs/2306.00978)
+- [PyTorch Conv2d documentation](https://docs.pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)

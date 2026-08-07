@@ -2,92 +2,131 @@
 
 > **Puzzle:** If the frozen base model is four-bit, where does fine-tuning memory still go?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+QLoRA makes the base model cheap enough to keep frozen, but it does not make fine-tuning
+free. Activations, adapter parameters, gradients, optimizer states, temporary
+dequantization, and sequence length remain on the memory ledger. A useful feasibility
+calculation names each object instead of multiplying parameter count by four bits and
+stopping.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Estimate BF16 and ideal INT4 storage for seven billion parameters before opening the result.
+2. Identify which tensors require gradients in a LoRA update and which remain frozen.
+3. Explain why activation checkpointing can matter even when the base weights are four-bit.
 
-QLoRA freezes a four-bit base, computes through a wider dtype, and trains LoRA matrices. The memory ledger still includes adapters, gradients, optimizer states, activations, temporary dequantization, and allocator reserve.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+QLoRA freezes a four-bit base, computes through a wider dtype, and trains LoRA matrices.
+The memory ledger still includes adapters, gradients, optimizer states, activations,
+temporary dequantization, and allocator reserve.
 
-- QLoRA freezes a quantized base and trains small low-rank adapters.
-- Optimizer state and gradients apply to trainable adapters, while activations remain a major runtime cost.
-- NF4 is a non-uniform codebook designed for normally distributed weights.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | QLoRA freezes a quantized base and trains small low-rank adapters. |
+| 2 | Optimizer state and gradients apply to trainable adapters, while activations remain a major runtime cost. |
+| 3 | NF4 is a non-uniform codebook designed for normally distributed weights. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-A rank-`r` adapter adds `ΔW = A·B` with roughly `r(in+out)` trainable parameters instead of `in×out`. NF4 provides a non-uniform 16-value codebook suited to normally distributed pretrained weights; double quantization compresses scale metadata.
+A rank-`r` adapter adds `ΔW = A·B` with roughly `r(in+out)` trainable parameters instead
+of `in×out`. NF4 provides a non-uniform 16-value codebook suited to normally distributed
+pretrained weights; double quantization compresses scale metadata.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+A LoRA update writes `ΔW = BA`, where A and B have rank r much smaller than the full
+matrix dimensions. QLoRA keeps W frozen in a quantized representation, dequantizes as
+needed for compute, and backpropagates only into A and B. NF4 uses a non-uniform
+codebook designed for roughly normal weight distributions; double quantization
+compresses scale metadata, while paged optimizers address memory spikes.
 
-## 3. Engineering trade-off and failure mode
+The ledger separates persistent storage from training-time liveness. Ideal base bytes
+are `P·4/8`, but adapter weights, adapter gradients, two Adam moments, activations, and
+workspaces have their own dtype and multiplicity. Sequence length can dominate because
+saved activations scale with tokens even though base storage does not.
 
-Lower base storage enables larger models, but sequence length and activation checkpointing often dominate training memory. Adapter rank trades capacity against trainable state and compute.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Build a 7B-class memory ledger and run a CUDA low-rank adapter forward/backward over a frozen fake-quantized base matrix.
 
-## 4. From theory to the notebook
-
-Build a 7B-class memory ledger and run a CUDA low-rank adapter forward/backward over a frozen fake-quantized base matrix.
-
-The lab combines a 7B-class arithmetic ledger with a real CUDA backward pass where only low-rank adapter tensors receive gradients.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | 7B BF16 base-weight arithmetic plus a frozen CUDA reference layer |
+| Candidate | ideal INT4 base ledger with trainable low-rank adapters |
+| Held constant | parameter count, adapter rank assumption, optimizer-state rule, toy layer shape |
+| Measurements | base GiB, LoRA/Adam MiB, gradient finiteness, frozen-base flag, toy loss |
+| Evidence label | `pytorch-gpu` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`pytorch-gpu`**.
+The lab combines a 7B-class arithmetic ledger with a real CUDA backward pass where only
+low-rank adapter tensors receive gradients.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-Separate frozen base storage, trainable parameters, gradients, optimizer estimate, and activations.
+The notebook first computes a transparent 7B ledger. It then runs a small
+forward/backward pass in which the fake-quantized base matrix has `requires_grad=False`
+and only low-rank adapter matrices receive gradients. The finite-gradient check proves
+the intended training path exists on CUDA.
 
-Reconcile theoretical and measured peak memory, confirm the base has no gradients, list compute dtype and optimizer, and validate downstream quality against a frozen baseline.
+The fake quantizer explains memory ownership but is not bitsandbytes NF4. The ledger
+also excludes full-model activations because they depend on architecture, microbatch,
+sequence length, checkpointing, and attention implementation.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `pytorch-gpu`
-- **Recorded outcome:** The frozen four-bit base reduced weight storage, while adapters, optimizer state, and activations remained separate costs.
+| Measured field | Checked-in value |
+|---|---:|
+| 7B BF16 base | 13.039 GiB |
+| 7B ideal INT4 base | 3.260 GiB |
+| LoRA trainable state | 8.000 MiB |
+| Adam states | 32.000 MiB |
+| Base frozen | yes |
+| Adapter gradients finite | yes |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+The arithmetic ledger placed a 7B BF16 base at 13.039 GiB and ideal four-bit storage at
+3.260 GiB. Under the toy adapter assumptions, trainable LoRA weights occupied 8 MiB and
+two Adam moments 32 MiB. The base stayed frozen and adapter gradients were finite.
 
-Four-bit base weights reduce one ledger line; sequence activations and adapter training state still control feasibility.
+Those small adapter lines explain QLoRA's appeal, but the missing activation line can
+still be larger than the trainable state for long contexts. The result proves the
+ownership pattern and a toy CUDA backward pass, not a 7B end-to-end fine-tuning capacity
+number.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Four-bit base weights reduce one ledger line; sequence activations and adapter training state still control feasibility.
+
+### Acceptance and rollback gate
+
+Reconcile theoretical and measured peak memory, confirm the base has no gradients, list
+compute dtype and optimizer, and validate downstream quality against a frozen baseline.
+
+### How this conclusion can fail
+
+Calling the base 'four-bit' while materializing a full BF16 copy defeats the ledger.
+Counting optimizer state for frozen weights overestimates memory, while omitting adapter
+moments underestimates it. A memory fit based on parameters alone can OOM during
+backward when saved activations and temporary buffers peak.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map 7B BF16 base-weight arithmetic plus a frozen CUDA
+reference layer and ideal INT4 base ledger with trainable low-rank adapters back to the
+derivation. Verify the printed environment, then check that parameter count, adapter
+rank assumption, optimizer-state rule, toy layer shape stayed fixed. Read base GiB,
+LoRA/Adam MiB, gradient finiteness, frozen-base flag, toy loss before applying the
+acceptance gate; the artifact-writing cell retains the complete structured result from
+the recorded run.
 
 ## Reproduce
 
@@ -100,22 +139,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/13-nf4-qlora/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Run a real QLoRA step with bitsandbytes or another supported backend and measure
+`max_memory_allocated` by sequence length, microbatch, rank, and checkpointing policy.
+Compare predicted persistent bytes with observed peak, and explain the residual using
+allocator snapshots and activation liveness.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The measured tensors and operations ran on CUDA through PyTorch. The result does not
+name a separate production backend unless an operator trace identifies it.
+
+The checked-in observation belongs to Lesson 13's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [QLoRA paper](https://arxiv.org/abs/2305.14314)
 - [Transformers bitsandbytes guide](https://huggingface.co/docs/transformers/main/quantization/bitsandbytes)
+- [QLoRA reference implementation](https://github.com/artidoro/qlora)

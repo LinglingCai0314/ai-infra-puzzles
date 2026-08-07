@@ -2,92 +2,128 @@
 
 > **Puzzle:** Why does changing group size alter both model size and reconstruction error?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+The label INT4 hides the parameters that determine what four bits mean. Scale chooses
+the real interval covered by the codes, zero point chooses where real zero lands, and
+group size chooses how many values share one range estimate. Those choices change both
+reconstruction error and metadata, even before a deployment kernel enters the picture.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Derive symmetric INT4 quantize and dequantize equations for code range [-8, 7].
+2. Predict how RMSE, scale count, and effective bits per weight change as group size shrinks.
+3. Explain why saturation fraction alone does not rank quantizers.
 
-Uniform quantization stores integer codes plus scale metadata and, for asymmetric schemes, zero points. Granularity may be per tensor, row/channel, or group/block.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+Uniform quantization stores integer codes plus scale metadata and, for asymmetric
+schemes, zero points. Granularity may be per tensor, row/channel, or group/block.
 
-- Scale maps a floating-point interval to a finite code range.
-- Symmetric quantization fixes zero point at zero; asymmetric quantization can spend codes more efficiently on shifted data.
-- Smaller groups adapt to local ranges but require more scale metadata.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | Scale maps a floating-point interval to a finite code range. |
+| 2 | Symmetric quantization fixes zero point at zero; asymmetric quantization can spend codes more efficiently on shifted data. |
+| 3 | Smaller groups adapt to local ranges but require more scale metadata. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-A common mapping is `q = clamp(round(x/s)+z, qmin, qmax)` and `x_hat = s(q-z)`. Symmetric INT4 typically uses `z=0` and a signed range near `[-8,7]`. Smaller groups estimate local ranges and reduce outlier sharing.
+A common mapping is `q = clamp(round(x/s)+z, qmin, qmax)` and `x_hat = s(q-z)`.
+Symmetric INT4 typically uses `z=0` and a signed range near `[-8,7]`. Smaller groups
+estimate local ranges and reduce outlier sharing.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+For symmetric signed b-bit quantization, let `qmax = 2^(b-1)-1`, `s = max(|x|)/qmax`, `q
+= clamp(round(x/s), -qmax-1, qmax)`, and `x̂ = s·q`. With asymmetric quantization a zero
+point z shifts the code grid: `q = clamp(round(x/s)+z, qmin, qmax)` and `x̂=s(q-z)`.
+Grouping repeats this calculation over local slices rather than the whole tensor.
 
-## 3. Engineering trade-off and failure mode
+If each group stores one FP16 scale, its metadata cost is `16/group_size` bits per
+weight. Nominal INT4 therefore becomes 5.0 effective bits at group size 16, 4.25 at 64,
+and 4.125 at 128 before padding or zero-point metadata. Smaller groups can isolate
+outliers but may be incompatible with the fastest backend kernels.
 
-Smaller groups add scale loads and metadata and may miss a backend's supported block sizes. Larger groups are cheaper but one outlier can enlarge the step for many ordinary weights.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Quantize an outlier-containing matrix with INT4 group sizes 16, 64, and 128 and compare error plus metadata overhead.
 
-## 4. From theory to the notebook
-
-Quantize an outlier-containing matrix with INT4 group sizes 16, 64, and 128 and compare error plus metadata overhead.
-
-The notebook holds the weight matrix fixed, changes only group size, and records both error and effective bits per weight.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | one fixed outlier-containing 1024×1024 weight matrix |
+| Candidate | symmetric INT4 with group sizes 16, 64, and 128 |
+| Held constant | same codes, scale dtype assumption, grouping axis, seed, and error reference |
+| Measurements | RMSE/cosine error, saturation fraction, scale count, effective bits per weight |
+| Evidence label | `numerical-model` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`numerical-model`**.
+The notebook holds the weight matrix fixed, changes only group size, and records both
+error and effective bits per weight.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-Check saturation, error, and effective bits per value. Do not report the nominal four bits without scale overhead.
+The notebook holds the matrix and quantization formula fixed and changes only group
+size. Each candidate is dequantized back to floating point before error is measured.
+Metadata is computed from the number of scales, making the storage comparison honest
+instead of repeating the nominal four-bit label.
 
-Report nominal bits, scale/zero-point overhead, clipping rate, reconstruction error, group axis, and kernel-compatible group size together.
+This is a numerical model. It does not pack nibbles, instantiate a production quantized
+linear layer, or time an INT4 kernel. That separation lets the lab answer the math
+question without overstating backend performance.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `numerical-model`
-- **Recorded outcome:** Smaller groups reduced local range sharing at the cost of more scale metadata.
+| Measured field | Checked-in value |
+|---|---:|
+| Group 16 RMSE | 0.200316 |
+| Group 16 effective bits | 5.000 bits/weight |
+| Group 64 RMSE | 0.384361 |
+| Group 64 effective bits | 4.250 bits/weight |
+| Group 128 RMSE | 0.508112 |
+| Group 128 effective bits | 4.125 bits/weight |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+Group size 16 produced the lowest RMSE, 0.200316, and cosine 0.992188, but required
+65,536 scales and 5.0 effective bits per weight. At group size 128, scale count fell to
+8,192 and effective storage to 4.125 bits, while RMSE rose to 0.508112 and cosine fell
+to 0.950873. Group size 64 sat between them.
 
-Group size is an error–metadata–kernel compatibility decision, not a cosmetic configuration value.
+The saturation fraction decreased with larger groups because the shared maximum widened
+each step size; fewer values landed on the extreme code, but reconstruction became
+coarser. This is why a lower saturation count is not automatically a better quantizer.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Group size is an error–metadata–kernel compatibility decision, not a cosmetic configuration value.
+
+### Acceptance and rollback gate
+
+Report nominal bits, scale/zero-point overhead, clipping rate, reconstruction error,
+group axis, and kernel-compatible group size together.
+
+### How this conclusion can fail
+
+Comparing only weight RMSE ignores how inputs weight different columns. Comparing only
+effective bits ignores alignment, padding, and scale loads. Finally, a group size with
+good numerical behavior can lose in production if the backend does not provide a fused
+kernel for that layout.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map one fixed outlier-containing 1024×1024 weight
+matrix and symmetric INT4 with group sizes 16, 64, and 128 back to the derivation.
+Verify the printed environment, then check that same codes, scale dtype assumption,
+grouping axis, seed, and error reference stayed fixed. Read RMSE/cosine error,
+saturation fraction, scale count, effective bits per weight before applying the
+acceptance gate; the artifact-writing cell retains the complete structured result from
+the recorded run.
 
 ## Reproduce
 
@@ -100,21 +136,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/08-quantization-math/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Add asymmetric zero points for shifted distributions, compare per-row and per-column
+grouping, and weight the error by held-out activations. Then pack two INT4 codes per
+byte and time a compatible native kernel so numerical, storage, and operator gates are
+all represented.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The CUDA numerical experiment isolates an algorithmic mechanism. It is not the paper's
+complete implementation and does not establish a production kernel speedup.
+
+The checked-in observation belongs to Lesson 08's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [TensorRT quantization schemes](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-schemes.html)
+- [TensorRT quantization workflows](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-workflows.html)
+- [PyTorch quantization fundamentals](https://docs.pytorch.org/ao/stable/contributing/quantization_overview.html)

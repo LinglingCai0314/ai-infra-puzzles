@@ -46,6 +46,11 @@ def main() -> int:
         )
         client.execute(cwd=str(path.parent))
         nbformat.write(notebook, path)
+    if args.chapter == "01":
+        # Refresh tutorial result tables from the artifacts written by the run.
+        from enrich_chapter01_delivery import main as enrich_delivery
+
+        enrich_delivery()
     print(f"Executed {len(notebooks)} notebooks successfully")
     return 0
 

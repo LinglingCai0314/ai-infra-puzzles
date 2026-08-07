@@ -2,92 +2,128 @@
 
 > **Puzzle:** Can we make activations easier to quantize without changing the floating-point linear layer?
 
-[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 artifact](artifacts/rtx5090-result.json)
+[← Chapter 01](../README.md) · [Project homepage](../../../README.md) · [Executed notebook](lab.ipynb) · [RTX 5090 result](artifacts/rtx5090-result.json)
 
-## Predict
+## Why this puzzle matters
 
-Before opening the saved result, write a falsifiable prediction:
+LLM activations often contain persistent channel outliers that make one tensor-wide INT8
+scale waste most of its codes. SmoothQuant does not delete those outliers; it moves part
+of their range into corresponding weight channels through an exactly equivalent
+floating-point reparameterization, then quantizes the easier pair.
 
-1. Which measured quantity should change, and in which direction?
-2. What GPU, numerical, or systems mechanism should cause that change?
-3. Which observation would make you keep the baseline or add a fallback?
-4. What level of evidence is needed: numerical model, PyTorch GPU path, or named native backend?
+## Predict before reading the result
 
-## 1. Start from the concrete objects
+1. Prove that reciprocal channel scaling leaves `XWᵀ` unchanged before quantization.
+2. Predict why alpha values near either endpoint can hurt combined W8A8 error.
+3. Choose the validation metric that should select alpha after calibration.
 
-SmoothQuant operates on matching input channels of activation `X` and weight `W` for a linear layer `Y=XWᵀ`.
+## 1. Start from concrete tensors and state
 
-Quick mental model:
+SmoothQuant operates on matching input channels of activation `X` and weight `W` for a
+linear layer `Y=XWᵀ`.
 
-- SmoothQuant applies reciprocal channel scaling to activations and weights, preserving the floating-point product.
-- The alpha parameter allocates quantization difficulty between activation and weight channels.
-- The best alpha depends on observed activation and weight ranges.
+### Three reasoning anchors
 
-This object-first view prevents storage format, compute format, accumulation,
-operator dispatch, latency, memory, and model quality from being treated as one
-interchangeable idea.
+| # | Lesson-specific claim to keep visible |
+|---:|---|
+| 1 | SmoothQuant applies reciprocal channel scaling to activations and weights, preserving the floating-point product. |
+| 2 | The alpha parameter allocates quantization difficulty between activation and weight channels. |
+| 3 | The best alpha depends on observed activation and weight ranges. |
 
-## 2. Core mechanism
+## 2. Derive the mechanism
 
-For positive channel scales `s`, `(X / s)(W · s)ᵀ = XWᵀ`. Choosing `s_j` from activation and weight maxima moves channel difficulty without changing the floating-point function. The exponent `alpha` decides how much range moves toward weights.
+For positive channel scales `s`, `(X / s)(W · s)ᵀ = XWᵀ`. Choosing `s_j` from activation
+and weight maxima moves channel difficulty without changing the floating-point function.
+The exponent `alpha` decides how much range moves toward weights.
 
-The formula or invariant above is the bridge between the theory and the code.
-If the implementation does not preserve or test it, the experiment is answering
-a different question.
+For positive channel scales s, define `X' = X / s` and `W' = W · s` along matching input
+channels. Then `X'W'ᵀ = (X/s)(W·s)ᵀ = XWᵀ`. A common SmoothQuant form constructs s from
+activation and weight maxima with an exponent alpha, so alpha controls how much range is
+assigned to each side.
 
-## 3. Engineering trade-off and failure mode
+The equality holds before quantization. After W8A8 rounding, shrinking activation
+outliers reduces activation step size while enlarged weight channels increase weight
+step size. The objective is the error of the composed quantized linear output, not
+activation amax in isolation.
 
-Activation ranges become easier for INT8 while weight ranges become harder. The correct objective is combined W8A8 output error and backend performance, not activation amax alone.
+## 3. Translate the theory into an experiment
 
-The most important failure mode for this lesson is therefore not simply "the
-number is worse." It is a mismatch between the claimed mechanism and the object,
-shape, distribution, or backend that actually ran.
+**Experiment:** Apply SmoothQuant-style channel scaling to an outlier-heavy linear layer, verify floating-point equivalence, and compare W8A8 reconstruction error over alpha values.
 
-## 4. From theory to the notebook
-
-Apply SmoothQuant-style channel scaling to an outlier-heavy linear layer, verify floating-point equivalence, and compare W8A8 reconstruction error over alpha values.
-
-The notebook checks the algebraic invariant before quantizing both sides and comparing output error across alpha values.
-
-| Theory question | Notebook evidence |
+| Experimental role | Frozen definition |
 |---|---|
-| What object or tensor changes? | Explicit shapes, dtypes, and configuration |
-| What mechanism should cause the effect? | Controlled baseline/candidate code |
-| Did the expected path run? | Evidence label and compatibility/operator fields |
-| What changed numerically or operationally? | Error, memory, or repeated timing fields |
-| When should we stop or roll back? | The acceptance gate below |
+| Baseline | W8A8 quantization without activation-to-weight migration (`alpha=0`) |
+| Candidate | reciprocal channel scaling for alpha 0.25, 0.5, 0.75, and 1.0 |
+| Held constant | same outlier-heavy X and W, per-tensor INT8 reference quantizer, held shapes |
+| Measurements | floating-point equivalence max error and quantized output RMSE/cosine by alpha |
+| Evidence label | `numerical-model` |
 
-The notebook records a sanitized environment and deterministic seed. GPU
-timings use CUDA events with synchronization, warm-up iterations, and repeated
-samples. The declared evidence label is **`numerical-model`**.
+The notebook checks the algebraic invariant before quantizing both sides and comparing
+output error across alpha values.
 
-## 5. Inspect, accept, or roll back
+### Code walk-through
 
-First verify algebraic equivalence; then compare quantized output error. A lower activation range alone is incomplete evidence.
+The notebook first evaluates the invariant in floating point for every alpha. Only after
+that check does it quantize both transformed tensors and compare the output with the
+original FP32 linear layer. This ordering prevents an algebra or broadcasting bug from
+being mistaken for quantization error.
 
-Verify floating-point equivalence first, freeze calibration statistics, sweep alpha on calibration data, and accept using held-out output/quality plus native W8A8 evidence.
+The sweep uses one calibration-like tensor and reports a numerical model, not a
+TensorRT-LLM SmoothQuant kernel. A production experiment would freeze scales on
+calibration data, evaluate held-out tasks, and measure a named W8A8 backend.
 
-Open [`lab.ipynb`](lab.ipynb) for the executable derivation and retained output.
-The compact [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) is
-designed for diffs and automated checks.
+## 4. Read the checked-in RTX 5090 result
 
-<!-- rtx5090-result:start -->
-## Checked-in RTX 5090 result
+**Recorded environment:** NVIDIA GeForce RTX 5090; compute capability 12.0; PyTorch 2.12.0; CUDA runtime 13.0.
 
-- **Environment:** NVIDIA GeForce RTX 5090, compute capability 12.0, PyTorch 2.12.0, CUDA runtime 13.0
-- **Evidence label:** `numerical-model`
-- **Recorded outcome:** Reciprocal scaling preserved the floating-point layer while changing combined W8A8 error.
+| Measured field | Checked-in value |
+|---|---:|
+| Alpha 0 RMSE | 3.298184 |
+| Alpha 0.25 RMSE | 1.663379 |
+| Alpha 0.5 RMSE | 1.151840 |
+| Alpha 0.75 RMSE | 1.634807 |
+| Alpha 1 RMSE | 3.224155 |
+| Worst floating equivalence error | 0.000061 |
 
-The exact shapes, repeated samples, errors, compatibility fields, and units are preserved in the [JSON artifact](artifacts/rtx5090-result.json) and the executed notebook output.
-<!-- rtx5090-result:end -->
+### What the numbers mean
 
-## Explain
+Floating-point equivalence stayed within roughly `6.1e-5` for every alpha. Quantized
+RMSE followed a U-shape: 3.298184 at alpha 0, 1.663379 at 0.25, a minimum of 1.151840 at
+0.5, then 1.634807 at 0.75 and 3.224155 at 1.0. Cosine similarity peaked at 0.999785 for
+alpha 0.5.
 
-Outlier migration is useful only when the combined activation-plus-weight quantized path improves under a frozen calibration protocol.
+The middle value balanced activation and weight difficulty for this synthetic
+distribution. The endpoints moved too much error to one side. This supports the
+migration mechanism while leaving the best alpha model- and layer-dependent.
 
-A useful conclusion states what changed, what did not change, and which backend,
-shape, or workload could reverse the result. It never upgrades a compatibility
-probe or numerical model into a production-kernel claim.
+Open [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json) when you need
+every repeated sample or a field not selected for the tutorial table.
+
+## 5. Solve the puzzle and make a decision
+
+> Outlier migration is useful only when the combined activation-plus-weight quantized path improves under a frozen calibration protocol.
+
+### Acceptance and rollback gate
+
+Verify floating-point equivalence first, freeze calibration statistics, sweep alpha on
+calibration data, and accept using held-out output/quality plus native W8A8 evidence.
+
+### How this conclusion can fail
+
+Choosing alpha from the same held-out set used for final quality reporting leaks the
+test. Reducing activation range without quantizing weights can give a false victory.
+Another failure is folding scales into weights but forgetting the corresponding
+activation transform or its runtime/fusion cost.
+
+## 6. Follow the theory inside the notebook
+
+In [`lab.ipynb`](lab.ipynb), first map W8A8 quantization without activation-to-weight
+migration (`alpha=0`) and reciprocal channel scaling for alpha 0.25, 0.5, 0.75, and 1.0
+back to the derivation. Verify the printed environment, then check that same
+outlier-heavy X and W, per-tensor INT8 reference quantizer, held shapes stayed fixed.
+Read floating-point equivalence max error and quantized output RMSE/cosine by alpha
+before applying the acceptance gate; the artifact-writing cell retains the complete
+structured result from the recorded run.
 
 ## Reproduce
 
@@ -100,21 +136,27 @@ pip install -r requirements-notebook.txt
 jupyter lab chapters/01-mixed-precision-int4/10-smoothquant/lab.ipynb
 ```
 
-Use **Run All**. Optional production backends are intentionally not hidden in
-the base requirements; install the version appropriate for your GPU and follow
-its official compatibility matrix before attempting a native path.
+Use **Run All** and compare the regenerated result with the checked-in artifact.
+
+## Extend the experiment
+
+Freeze channel statistics on one tensor set and select alpha on a separate validation
+set, then report task quality on a third. Compare per-layer versus global alpha and
+inspect which layers retain outliers. Finally run a native W8A8 backend and verify that
+the scale transforms are folded or fused as intended.
 
 ## Evidence boundary
 
-- The checked-in notebook was executed on the GPU recorded inside the artifact;
-  results on another GPU or software release may differ.
-- Synthetic tensors isolate the mechanism and keep the lab downloadable. They
-  do not establish full-model task quality or service throughput.
-- Missing optional packages are recorded as `not_installed`, `failed`, or
-  `not_measured`; no substitute backend is presented as native evidence.
-- This is independently written tutorial material. It does not redistribute the
-  source-course HTML, model weights, or private profiler traces.
+The CUDA numerical experiment isolates an algorithmic mechanism. It is not the paper's
+complete implementation and does not establish a production kernel speedup.
+
+The checked-in observation belongs to Lesson 10's recorded RTX 5090 environment and
+controlled variables. It can explain this mechanism without establishing unmeasured
+full-model quality or online-service performance. The tutorial is independently written
+and does not redistribute course source files, model weights, or private infrastructure.
 
 ## References
 
 - [SmoothQuant paper](https://arxiv.org/abs/2211.10438)
+- [SmoothQuant paper implementation](https://github.com/mit-han-lab/smoothquant)
+- [TensorRT quantization schemes](https://docs.nvidia.com/deeplearning/tensorrt/latest/inference-library/quantized-types-schemes.html)

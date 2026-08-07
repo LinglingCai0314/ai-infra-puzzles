@@ -982,8 +982,12 @@ def main() -> None:
         (directory / "artifacts").mkdir(parents=True, exist_ok=True)
         (directory / "README.md").write_text(readme_for(lesson), encoding="utf-8")
         (directory / "lab.ipynb").write_text(json.dumps(notebook_for(lesson), ensure_ascii=False, indent=1)+"\n", encoding="utf-8")
-    (CHAPTER / "README.md").write_text(chapter_readme(), encoding="utf-8")
-    print(f"Built {len(LESSONS)} lesson notes and notebooks under {CHAPTER}")
+    # The chapter map is hand-maintained so its 30-lesson theory route is not
+    # replaced by the compact bootstrap table above.
+    from enrich_chapter01_delivery import main as enrich_delivery
+
+    enrich_delivery()
+    print(f"Built and enriched {len(LESSONS)} lesson notes and notebooks under {CHAPTER}")
 
 
 if __name__ == "__main__":
