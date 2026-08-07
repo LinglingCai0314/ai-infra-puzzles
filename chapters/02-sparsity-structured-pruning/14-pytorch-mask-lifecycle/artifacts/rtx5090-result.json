@@ -1,0 +1,39 @@
+{
+  "lesson": 14,
+  "title": "PyTorch Pruning API and the Complete Mask Lifecycle",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260822
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "first_sparsity": 0.25,
+    "iterated_sparsity": 0.4375,
+    "post_step_sparsity": 0.4375,
+    "first_parameters": [
+      "bias",
+      "weight_orig"
+    ],
+    "first_buffers": [
+      "weight_mask"
+    ],
+    "parameters_before_remove": "bias,weight_orig",
+    "buffers_before_remove": "weight_mask",
+    "hooks_before_remove": 1,
+    "parameters_after_remove": [
+      "bias",
+      "weight"
+    ],
+    "buffers_after_remove": [],
+    "hooks_after_remove": 0,
+    "training_loss": 1.3789167404174805,
+    "training_output_change": 0.0009972263360396028,
+    "remove_max_error": 0.0
+  },
+  "analysis": "The first call produced 25.0% sparsity and the second composed to 43.8%. Before removal, parameters were `bias,weight_orig`, buffers were `weight_mask`, and 1 pre-hook was active. `remove` left drift 0.000e+00 and restored a materialized `weight` parameter.",
+  "conclusion": "PyTorch masks are auditable training state; `remove` materializes them but does not create a sparse runtime format."
+}

@@ -1,0 +1,65 @@
+{
+  "lesson": 10,
+  "title": "Taylor Importance: Ranking Channels by Loss Change",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260818
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "l1_spearman": 0.8671328671328611,
+    "taylor_spearman": 0.8951048951048889,
+    "l1_top_channel": 5,
+    "taylor_top_channel": 5,
+    "actual_top_channel": 7,
+    "baseline_loss": 0.12626215815544128,
+    "l1_scores": [
+      6.110829830169678,
+      7.437592506408691,
+      8.989200592041016,
+      8.127813339233398,
+      6.108587265014648,
+      10.814108848571777,
+      9.075263977050781,
+      9.397420883178711,
+      10.18946647644043,
+      8.12380599975586,
+      9.84946060180664,
+      10.645395278930664
+    ],
+    "taylor_scores": [
+      8.525817975169048e-05,
+      0.00015044563042465597,
+      0.0003051177482120693,
+      0.00024089829821605235,
+      4.13286397815682e-05,
+      0.0006415031966753304,
+      0.00017717965238261968,
+      0.0004949570866301656,
+      0.0003283051191829145,
+      0.0001741854939609766,
+      0.0005865772254765034,
+      0.0003782685671467334
+    ],
+    "actual_loss_increase": [
+      0.009240880608558655,
+      0.00875680148601532,
+      0.04458989202976227,
+      0.016585558652877808,
+      -0.009895414113998413,
+      0.15099382400512695,
+      0.015633806586265564,
+      0.2300489842891693,
+      0.13828808069229126,
+      0.040381088852882385,
+      0.11695161461830139,
+      0.2173728048801422
+    ]
+  },
+  "analysis": "Against exhaustive held-out ablations, L1 ranking had Spearman 0.8671 and Taylor had 0.8951. Their top channels were 5 and 5, while the largest actual loss increase came from channel 7. The result tests one local ranking on one calibration batch.",
+  "conclusion": "Taylor importance estimates local loss sensitivity; its value is established by held-out ablation agreement, not by the formula alone."
+}

@@ -44,7 +44,8 @@ def main() -> int:
         return 1
     chapter = matches[0]
     lessons = sorted(path for path in chapter.glob("[0-9][0-9]-*") if path.is_dir())
-    expected = list(range(1, 31)) if number == "01" else None
+    expected_counts = {"01": 30, "02": 28}
+    expected = list(range(1, expected_counts[number] + 1)) if number in expected_counts else None
     actual = [int(path.name.split("-", 1)[0]) for path in lessons]
     if expected and actual != expected:
         issues.append(f"lesson sequence mismatch: {actual}")
@@ -132,8 +133,9 @@ def main() -> int:
             issues.append(f"chapter navigation missing lesson: {lesson.name}")
 
     project_text = (ROOT / "README.md").read_text(encoding="utf-8")
-    if "chapters/01-mixed-precision-int4/README.md" not in project_text:
-        issues.append("project README does not link Chapter 01")
+    chapter_link = f"{chapter.relative_to(ROOT)}/README.md"
+    if chapter_link not in project_text:
+        issues.append(f"project README does not link Chapter {number}")
 
     if issues:
         print("Chapter validation failed:")

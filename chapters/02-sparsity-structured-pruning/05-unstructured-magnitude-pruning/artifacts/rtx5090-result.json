@@ -1,0 +1,33 @@
+{
+  "lesson": 5,
+  "title": "Unstructured Magnitude Pruning Without Storage Myths",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260813
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "sparsity": 0.8000001907348633,
+    "dense_raw_bytes": 4195945,
+    "dense_gzip_bytes": 3794967,
+    "hook_raw_bytes": 8390501,
+    "hook_gzip_bytes": 3961000,
+    "removed_raw_bytes": 4195945,
+    "removed_gzip_bytes": 1120583,
+    "hook_keys": [
+      "weight_mask",
+      "weight_orig"
+    ],
+    "removed_keys": [
+      "weight"
+    ],
+    "remove_max_error": 0.0,
+    "pruning_change_rmse": 0.4095126986503601
+  },
+  "analysis": "The effective weight reached 80.0% sparsity. The hook checkpoint used keys ['weight_mask', 'weight_orig'] and occupied 8,390,501 raw bytes, while `remove` restored a single key ['weight'] and 4,195,945 raw bytes. Gzip reduced the materialized payload to 1,120,583 bytes. Forward drift across `remove` was 0.000e+00, proving lifecycle equivalence but not sparse storage.",
+  "conclusion": "Magnitude pruning creates zeros; storage compression and runtime acceleration require additional explicit representations."
+}

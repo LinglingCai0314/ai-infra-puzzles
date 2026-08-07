@@ -1,0 +1,32 @@
+{
+  "lesson": 2,
+  "title": "The Sparsity Granularity Spectrum: Weights, Channels, Blocks, and N:M",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260810
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "unstructured_sparsity": 0.5,
+    "block_sparsity": 0.5,
+    "nm_sparsity": 0.5,
+    "unstructured_2_4_compliance": 0.37503910064697266,
+    "block_2_4_compliance": 0.0,
+    "nm_compliance": 1.0,
+    "dense_median_ms": 0.017920000478625298,
+    "unstructured_median_ms": 0.01788800023496151,
+    "block_median_ms": 0.01809599995613098,
+    "nm_dense_path_median_ms": 0.018384000286459923,
+    "narrow_median_ms": 0.01848000008612871,
+    "narrow_shape": [
+      1024,
+      2048
+    ]
+  },
+  "analysis": "All three masks were near 50% sparse, but exact 2:4 compliance was 100.0% versus 37.5% for the unstructured mask. The ordinary dense path measured 0.017920 ms for dense, 0.017888 ms for unstructured, and 0.018384 ms for compliant values. Only the narrow control changed the matrix shape; no sparse-kernel dispatch is inferred from these timings.",
+  "conclusion": "Sparsity granularity is an interface between optimization and execution; a global zero rate is only one field of that interface."
+}

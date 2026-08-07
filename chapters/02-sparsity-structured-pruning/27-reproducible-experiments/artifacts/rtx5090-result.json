@@ -1,0 +1,76 @@
+{
+  "lesson": 27,
+  "title": "Automated Experiment Management and Reproducible Pruning Records",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260835
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "same_seed_config_match": true,
+    "same_seed_mask_match": true,
+    "same_seed_output_match": true,
+    "different_seed_mask_differs": true,
+    "sparsity": 0.75,
+    "config_sha256": "4182a833a49db2850e8ca57ccd0c54934e796ed460f629c65295fc8fd0f9f38e",
+    "mask_sha256": "89bdaa05855b8278a2ac4048c61f9873abf7a3fadd0270289ffcf6db1330d986",
+    "output_sha256": "a27663267d8b7954c593dbeb00adb21325781a67e931441fa2f10d74cc98e762",
+    "changed_seed_mask_sha256": "8b615e8dd3a27d02b9b8f15a02554dbf4e6874e806367f0af960db41e1b70c60",
+    "runs": [
+      {
+        "config": {
+          "algorithm": "global_magnitude",
+          "shape": [
+            256,
+            256
+          ],
+          "sparsity": 0.75,
+          "seed": 20260835,
+          "dtype": "float32"
+        },
+        "config_sha256": "4182a833a49db2850e8ca57ccd0c54934e796ed460f629c65295fc8fd0f9f38e",
+        "mask_sha256": "89bdaa05855b8278a2ac4048c61f9873abf7a3fadd0270289ffcf6db1330d986",
+        "output_sha256": "a27663267d8b7954c593dbeb00adb21325781a67e931441fa2f10d74cc98e762",
+        "sparsity": 0.75
+      },
+      {
+        "config": {
+          "algorithm": "global_magnitude",
+          "shape": [
+            256,
+            256
+          ],
+          "sparsity": 0.75,
+          "seed": 20260835,
+          "dtype": "float32"
+        },
+        "config_sha256": "4182a833a49db2850e8ca57ccd0c54934e796ed460f629c65295fc8fd0f9f38e",
+        "mask_sha256": "89bdaa05855b8278a2ac4048c61f9873abf7a3fadd0270289ffcf6db1330d986",
+        "output_sha256": "a27663267d8b7954c593dbeb00adb21325781a67e931441fa2f10d74cc98e762",
+        "sparsity": 0.75
+      },
+      {
+        "config": {
+          "algorithm": "global_magnitude",
+          "shape": [
+            256,
+            256
+          ],
+          "sparsity": 0.75,
+          "seed": 20260836,
+          "dtype": "float32"
+        },
+        "config_sha256": "cfd8082480931d1312f553544369a1bafaa07ea5ce0e58d14e9d86d47630b5f3",
+        "mask_sha256": "8b615e8dd3a27d02b9b8f15a02554dbf4e6874e806367f0af960db41e1b70c60",
+        "output_sha256": "7651a85d0e27e7c52f10eada7561d907c9531420a1bb1bd8d780df5794bece24",
+        "sparsity": 0.75
+      }
+    ]
+  },
+  "analysis": "Identical-seed runs matched config/mask/output hashes=True/True/True at 75.0% sparsity. Changing only the seed changed the mask=True. The recorded support digest begins `89bdaa05855b`.",
+  "conclusion": "Reproducible pruning identifies the exact configuration, support, environment, and outputs—not merely the final zero percentage."
+}

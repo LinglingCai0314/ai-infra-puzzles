@@ -20,6 +20,7 @@
   <img src="https://img.shields.io/badge/RTX_5090-verified-76B900" alt="Verified on RTX 5090">
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
   <img src="https://img.shields.io/badge/Chapter_01-30_Labs-6C63FF" alt="Chapter 01 has 30 labs">
+  <img src="https://img.shields.io/badge/Chapter_02-28_Labs-00A6A6" alt="Chapter 02 has 28 labs">
 </p>
 
 ## What is AI Infra Puzzles?
@@ -82,6 +83,25 @@ or open the
 [executed notebook](chapters/01-mixed-precision-int4/01-precision-formats/lab.ipynb)
 to see why.
 
+## Continue with Chapter 02
+
+### [Sparsity and Structured Pruning](chapters/02-sparsity-structured-pruning/README.md)
+
+Chapter 02 is a 28-lesson path from pruning objectives and mask semantics to
+physical channel deletion, dependency graphs, 2:4 constraints, framework
+lifecycles, CNN/Transformer/LLM pruning, honest acceleration benchmarks, and
+edge-versus-server deployment decisions.
+
+Every lesson distinguishes four different claims: values became zero, storage
+became smaller, tensor shapes changed, and the runtime became faster. The
+checked-in labs were executed on an RTX 5090 with PyTorch 2.12 and CUDA 13.0.
+Optional toolchains are reported as compatibility probes when unavailable;
+missing native execution is never presented as measured acceleration.
+
+See the [complete 28-lesson map](chapters/02-sparsity-structured-pruning/README.md)
+or start with
+[Lesson 01 — Pruning Objectives](chapters/02-sparsity-structured-pruning/01-pruning-objectives/README.md).
+
 ## Quick Start
 
 ### Run the executed GPU notebook
@@ -110,6 +130,15 @@ To execute the lightweight mechanism labs for Lessons 02–30 in order:
 python3 scripts/execute_chapter_notebooks.py --chapter 01 --start 2 --end 30
 python3 scripts/validate_chapter.py 01
 python3 scripts/audit_chapter01_delivery.py
+```
+
+To execute and validate all Chapter 02 pruning labs:
+
+```bash
+python3 scripts/execute_chapter_notebooks.py --chapter 02 --start 1 --end 28
+python3 scripts/build_chapter02_lessons.py --chapter-readme
+python3 scripts/validate_chapter.py 02
+python3 scripts/audit_chapter02_delivery.py
 ```
 
 ### Command-line alternative
@@ -154,8 +183,8 @@ Predict → Run → Inspect → Explain
   reverse.
 
 Only completed lessons with runnable code and inspectable evidence are linked.
-Chapter 01 currently has all 30 lessons published and executed on the recorded
-RTX 5090 environment.
+Chapter 01 has 30 published labs and Chapter 02 has 28; both retain outputs from
+their recorded RTX 5090 environments.
 
 ```text
 ai-infra-puzzles/
@@ -164,15 +193,21 @@ ai-infra-puzzles/
 ├── requirements-notebook.txt
 ├── assets/branding/        # Project logo
 ├── chapters/
-│   └── 01-mixed-precision-int4/
-│       ├── README.md       # 30-lesson chapter map
-│       ├── support/        # Shared timing and result helpers
-│       ├── 01-precision-formats/
-│       │   ├── README.md   # Theory notes
-│       │   ├── lab.ipynb   # Code with retained outputs
-│       │   ├── artifacts/  # Small public evidence
-│       │   └── support/    # Full-model runner
-│       └── 02-... through 30-.../
+│   ├── 01-mixed-precision-int4/
+│   │   ├── README.md       # 30-lesson chapter map
+│   │   ├── support/        # Shared timing and result helpers
+│   │   ├── 01-precision-formats/
+│   │   │   ├── README.md   # Theory notes
+│   │   │   ├── lab.ipynb   # Code with retained outputs
+│   │   │   ├── artifacts/  # Small public evidence
+│   │   │   └── support/    # Full-model runner
+│   │   └── 02-... through 30-.../
+│   │       ├── README.md
+│   │       ├── lab.ipynb
+│   │       └── artifacts/
+│   └── 02-sparsity-structured-pruning/
+│       ├── README.md       # 28-lesson chapter map
+│       └── 01-... through 28-.../
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/

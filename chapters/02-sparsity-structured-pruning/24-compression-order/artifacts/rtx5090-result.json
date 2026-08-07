@@ -1,0 +1,27 @@
+{
+  "lesson": 24,
+  "title": "Ordering Distillation, Quantization, and Pruning",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260832
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "quantize_first_scale": 0.10754905911042499,
+    "prune_first_scale": 0.10754905911042499,
+    "quantize_first_rmse": 10.841832160949707,
+    "prune_first_rmse": 10.841832160949707,
+    "recovered_rmse": 11.202019691467285,
+    "quantize_first_cosine": 0.9865742921829224,
+    "prune_first_cosine": 0.9865742921829224,
+    "recovered_cosine": 0.9854928851127625,
+    "final_sparsity": 0.6000027060508728,
+    "recovery_steps": 35
+  },
+  "analysis": "Dense-calibrated quantization used scale 0.107549; recalibration after pruning used 0.107549. Held-out RMSE was 10.841832 for quantize-then-prune and 10.841832 for prune-then-quantize. A 35-step constrained teacher recovery reached 11.202020 at 60.0% sparsity.",
+  "conclusion": "Compression order is part of the model recipe because pruning, calibration, and recovery state do not commute."
+}

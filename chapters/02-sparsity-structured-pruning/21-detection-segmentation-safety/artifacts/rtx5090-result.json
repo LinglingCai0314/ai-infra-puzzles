@@ -1,0 +1,33 @@
+{
+  "lesson": 21,
+  "title": "Safe Pruning for Detection and Segmentation",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260829
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "uniform_aggregate_rmse": 3.6886346340179443,
+    "protected_aggregate_rmse": 2.9259581565856934,
+    "uniform_large_rmse": 2.372267484664917,
+    "uniform_medium_rmse": 2.8775017261505127,
+    "uniform_small_rmse": 5.187524318695068,
+    "protected_large_rmse": 3.126690626144409,
+    "protected_medium_rmse": 3.1481080055236816,
+    "protected_small_rmse": 2.4488604068756104,
+    "uniform_worst_slice": "small",
+    "protected_worst_slice": "medium",
+    "retained_channels": 36,
+    "protected_allocation": {
+      "large": 6,
+      "medium": 10,
+      "small": 20
+    }
+  },
+  "analysis": "Both policies retained 36 channels across three branches. Uniform allocation produced aggregate RMSE 3.688635 and small-slice RMSE 5.187524; protecting the high-resolution branch produced 2.925958 and 2.448860, respectively. The per-slice table—not the aggregate alone—determines whether the risk trade is acceptable.",
+  "conclusion": "Safe pruning treats the worst critical slice as a first-class constraint rather than trusting an aggregate metric."
+}

@@ -1,0 +1,45 @@
+{
+  "lesson": 28,
+  "title": "Why Edge and Server Deployment Need Different Pruning Strategies",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260836
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "dense_raw_bytes": 8388608,
+    "dense_gzip_bytes": 6646281,
+    "masked_raw_bytes": 8388608,
+    "masked_gzip_bytes": 2789948,
+    "narrow_raw_bytes": 2097152,
+    "narrow_gzip_bytes": 1661842,
+    "batch1_dense_ms": 0.018303999677300453,
+    "batch1_masked_ms": 0.01775999926030636,
+    "batch1_narrow_ms": 0.01422400027513504,
+    "batch64_dense_ms": 0.0180479995906353,
+    "batch64_narrow_ms": 0.018400000408291817,
+    "batch64_speedup": 0.9808695212040381,
+    "edge_runtime_measured": false,
+    "edge_energy_measured": false,
+    "edge_decision": "pending_native_measurement",
+    "server_decision": "narrow_candidate_supported_by_cuda_shape_probe",
+    "platform_matrix": {
+      "edge": {
+        "package_bytes_measured": true,
+        "latency_measured": false,
+        "energy_measured": false
+      },
+      "server": {
+        "batch1_measured": true,
+        "batch64_measured": true,
+        "operator": "dense_pytorch_linear"
+      }
+    }
+  },
+  "analysis": "Dense/masked/narrow gzip payloads were 6,646,281/2,789,948/1,661,842 bytes. On RTX 5090, batch-1 medians were 0.018304/0.017760/0.014224 ms and the batch-64 physical-width ratio was 0.981x. Edge latency and energy remain unmeasured, so the edge decision is explicitly pending.",
+  "conclusion": "Sparsity strategy is platform-specific: storage evidence, edge execution, and server execution must remain separate until each is measured."
+}

@@ -1,0 +1,27 @@
+{
+  "lesson": 23,
+  "title": "One-shot LLM Pruning: SparseGPT and Wanda Mechanisms",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260831
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "sparsity": 0.5,
+    "magnitude_rmse": 20.097501754760742,
+    "wanda_rmse": 4.029922008514404,
+    "curvature_rmse": 6.004299640655518,
+    "magnitude_cosine": 0.9629581570625305,
+    "wanda_cosine": 0.9985371828079224,
+    "curvature_cosine": 0.9967498183250427,
+    "magnitude_wanda_overlap": 0.6647262573242188,
+    "calibration_scale_min": 0.10000000149011612,
+    "calibration_scale_max": 10.0
+  },
+  "analysis": "At 50.0% sparsity, magnitude/Wanda/curvature-proxy held-out RMSE values were 20.097502/4.029922/6.004300. Magnitude and Wanda retained-support overlap was 66.5% under a 100x calibration feature-scale range. The curvature score is a diagonal OBS-style proxy, not SparseGPT's sequential algorithm.",
+  "conclusion": "Activation-aware support selection can reduce one-shot reconstruction error, but official algorithms and full-model evidence remain separate gates."
+}

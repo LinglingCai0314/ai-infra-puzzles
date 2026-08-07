@@ -1,0 +1,74 @@
+{
+  "lesson": 26,
+  "title": "Accuracy Recovery, Rollback, and Slice Error Analysis",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260834
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "dense_accuracy": 1.0,
+    "pruned_immediate_accuracy": 0.9919354319572449,
+    "recovered_accuracy": 1.0,
+    "dense_recall": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "immediate_recall": [
+      0.9888888597488403,
+      1.0,
+      1.0
+    ],
+    "recovered_recall": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "worst_recall_drop": 0.0,
+    "dense_confusion": [
+      [
+        180,
+        0,
+        0
+      ],
+      [
+        0,
+        50,
+        0
+      ],
+      [
+        0,
+        0,
+        18
+      ]
+    ],
+    "recovered_confusion": [
+      [
+        180,
+        0,
+        0
+      ],
+      [
+        0,
+        50,
+        0
+      ],
+      [
+        0,
+        0,
+        18
+      ]
+    ],
+    "accuracy_drop_threshold": 0.03,
+    "recall_drop_threshold": -0.1,
+    "rollback_required": false,
+    "final_sparsity": 0.7001811594202898
+  },
+  "analysis": "Dense, immediate-pruned, and recovered aggregate accuracies were 100.0%, 99.2%, and 100.0%. The worst class-recall change after recovery was 0.0%; under the frozen 3-point aggregate and 10-point recall gates, rollback_required=False.",
+  "conclusion": "Recovery is complete only when aggregate and protected slices pass a predeclared gate with a tested rollback path."
+}

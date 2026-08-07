@@ -1,0 +1,28 @@
+{
+  "lesson": 18,
+  "title": "TensorRT Sparse Deployment and Polygraphy Evidence",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260826
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "nm_compliance": 1.0,
+    "sparsity": 0.5,
+    "dtype": "torch.float16",
+    "dtype_eligible": true,
+    "tensorrt_available": false,
+    "polygraphy_available": false,
+    "trtexec_available": false,
+    "trtexec_path": null,
+    "eligible_weight_data": true,
+    "sparse_engine_built": false,
+    "sparse_tactic_selected": false
+  },
+  "analysis": "The weight passed 100.0% of exact 2:4 groups at 50.0% sparsity and used an eligible dtype=True. TensorRT/Polygraphy/trtexec availability was False/False/False. Because no engine was built, sparse tactic selection remains false.",
+  "conclusion": "TensorRT sparsity is proven by eligibility, selected tactic, correctness, and benchmark evidence—not by a flag."
+}

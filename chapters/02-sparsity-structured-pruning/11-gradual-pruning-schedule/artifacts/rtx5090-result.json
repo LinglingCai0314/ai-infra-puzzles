@@ -1,0 +1,138 @@
+{
+  "lesson": 11,
+  "title": "Gradual Pruning Schedules and Recovery Training",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260819
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "dense_accuracy": 0.8866667151451111,
+    "oneshot_final_accuracy": 0.7266666889190674,
+    "gradual_final_accuracy": 0.7400000095367432,
+    "target_sparsity": 0.8,
+    "oneshot_actual_sparsity": 0.7998511904761905,
+    "gradual_actual_sparsity": 0.7998511904761905,
+    "schedule_updates": 11,
+    "oneshot_trajectory": [
+      {
+        "step": 0,
+        "target": 0.8,
+        "accuracy_before_update": 0.6933333277702332
+      },
+      {
+        "step": 4,
+        "target": 0.8,
+        "accuracy_before_update": 0.6933333277702332
+      },
+      {
+        "step": 8,
+        "target": 0.8,
+        "accuracy_before_update": 0.6966666579246521
+      },
+      {
+        "step": 12,
+        "target": 0.8,
+        "accuracy_before_update": 0.7233333587646484
+      },
+      {
+        "step": 16,
+        "target": 0.8,
+        "accuracy_before_update": 0.7233333587646484
+      },
+      {
+        "step": 20,
+        "target": 0.8,
+        "accuracy_before_update": 0.7400000095367432
+      },
+      {
+        "step": 24,
+        "target": 0.8,
+        "accuracy_before_update": 0.7200000286102295
+      },
+      {
+        "step": 28,
+        "target": 0.8,
+        "accuracy_before_update": 0.7233333587646484
+      },
+      {
+        "step": 32,
+        "target": 0.8,
+        "accuracy_before_update": 0.7166666984558105
+      },
+      {
+        "step": 36,
+        "target": 0.8,
+        "accuracy_before_update": 0.7200000286102295
+      },
+      {
+        "step": 39,
+        "target": 0.8,
+        "accuracy_before_update": 0.7266666889190674
+      }
+    ],
+    "gradual_trajectory": [
+      {
+        "step": 0,
+        "target": 0.0,
+        "accuracy_before_update": 0.8866667151451111
+      },
+      {
+        "step": 4,
+        "target": 0.22177042768758737,
+        "accuracy_before_update": 0.89000004529953
+      },
+      {
+        "step": 8,
+        "target": 0.39822653787150825,
+        "accuracy_before_update": 0.8799999952316284
+      },
+      {
+        "step": 12,
+        "target": 0.5345471096950387,
+        "accuracy_before_update": 0.846666693687439
+      },
+      {
+        "step": 16,
+        "target": 0.6359109223014549,
+        "accuracy_before_update": 0.8199999928474426
+      },
+      {
+        "step": 20,
+        "target": 0.707496754834033,
+        "accuracy_before_update": 0.753333330154419
+      },
+      {
+        "step": 24,
+        "target": 0.7544833864360492,
+        "accuracy_before_update": 0.7366666793823242
+      },
+      {
+        "step": 28,
+        "target": 0.7820495962507797,
+        "accuracy_before_update": 0.7366666793823242
+      },
+      {
+        "step": 32,
+        "target": 0.7953741634215007,
+        "accuracy_before_update": 0.75
+      },
+      {
+        "step": 36,
+        "target": 0.7996358670914884,
+        "accuracy_before_update": 0.7366666793823242
+      },
+      {
+        "step": 39,
+        "target": 0.8,
+        "accuracy_before_update": 0.7366666793823242
+      }
+    ]
+  },
+  "analysis": "Both routes used 40 optimizer updates and finished near 80% sparsity. One-shot validation accuracy ended at 72.7%, while the cubic route ended at 74.0% after 11 recorded mask updates. The retained trajectories show when each support shock occurred.",
+  "conclusion": "Gradual pruning controls the sequence of support changes; its endpoint is insufficient to reproduce or judge recovery."
+}

@@ -1,0 +1,26 @@
+{
+  "lesson": 15,
+  "title": "Torch-Pruning DepGraph: A Structured-Pruning Compatibility Lab",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260823
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "torch_pruning_available": false,
+    "torch_pruning_version": null,
+    "group_built": false,
+    "group_valid": false,
+    "group_size": 0,
+    "manual_output_channels": 6,
+    "manual_parameters": 368,
+    "full_parameters": 552,
+    "probe_message": "torch_pruning not installed"
+  },
+  "analysis": "The manual dependency control reduced the model from 552 to 368 parameters and produced 6 output channels. Torch-Pruning availability was False; group built/valid were False/False. This is a bounded compatibility result when the optional package is absent.",
+  "conclusion": "A dependency graph is valuable when its real group, mutation, and save/load path are observed—not when its name appears in a plan."
+}

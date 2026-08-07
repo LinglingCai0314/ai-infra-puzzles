@@ -1,0 +1,33 @@
+{
+  "lesson": 7,
+  "title": "Filter Pruning: Making Convolution Physically Narrower",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260815
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "masked_parameters": 11520,
+    "narrow_parameters": 5760,
+    "masked_flops": 377487360,
+    "narrow_flops": 188743680,
+    "flop_reduction": 0.5,
+    "max_error": 0.001953125,
+    "masked_median_ms": 0.05632000043988228,
+    "narrow_median_ms": 0.04465600103139877,
+    "masked_channels": [
+      32,
+      24
+    ],
+    "narrow_channels": [
+      16,
+      24
+    ]
+  },
+  "analysis": "Masking retained 11,520 parameters, while physical propagation reduced the block to 5,760 and analytical convolution work by 50.0%. The copied narrow block matched the masked control within 1.953e-03. Median latency changed from 0.056320 to 0.044656 ms on this shape.",
+  "conclusion": "Filter pruning accelerates ordinary dense convolution only after channel dimensions are physically rebuilt and propagated."
+}

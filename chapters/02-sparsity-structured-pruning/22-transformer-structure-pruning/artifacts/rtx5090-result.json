@@ -1,0 +1,30 @@
+{
+  "lesson": 22,
+  "title": "Pruning Transformer Heads, FFN Neurons, and Layers",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260830
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "full_parameters": 49984,
+    "head_mask_parameters": 49984,
+    "ffn_narrow_parameters": 33472,
+    "head_mask_rmse": 0.037987977266311646,
+    "ffn_narrow_rmse": 0.14698943495750427,
+    "layer_skip_rmse": 0.2274712175130844,
+    "full_median_ms": 0.1533600017428398,
+    "head_mask_median_ms": 0.159791998565197,
+    "ffn_narrow_median_ms": 0.21143999695777893,
+    "sequence_length": 128,
+    "hidden_width": 64,
+    "full_ffn_width": 256,
+    "narrow_ffn_width": 128
+  },
+  "analysis": "Masking two of four heads preserved 49,984 parameters and measured 0.159792 ms versus 0.153360 ms for the full block. Physical FFN narrowing reduced parameters to 33,472, measured 0.211440 ms, and introduced RMSE 0.146989. Layer skipping had RMSE 0.227471 before recovery.",
+  "conclusion": "Transformer pruning must name the structural unit and prove its physical compute path; masks alone are insufficient."
+}

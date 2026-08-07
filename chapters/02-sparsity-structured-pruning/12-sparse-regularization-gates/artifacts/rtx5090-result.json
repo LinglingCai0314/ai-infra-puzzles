@@ -1,0 +1,93 @@
+{
+  "lesson": 12,
+  "title": "Sparse Regularization and Learnable Structural Gates",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260820
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "weak_active_channels": 6,
+    "strong_active_channels": 6,
+    "weak_gate_mean": 0.4684237241744995,
+    "strong_gate_mean": 0.2596563696861267,
+    "weak_val_mse": 0.020268043503165245,
+    "strong_val_mse": 0.020011305809020996,
+    "selected_threshold": 0.2,
+    "thresholded_val_mse": 0.019542662426829338,
+    "threshold_sweep": [
+      {
+        "threshold": 0.1,
+        "active": 13,
+        "mse": 0.019915562123060226
+      },
+      {
+        "threshold": 0.2,
+        "active": 6,
+        "mse": 0.019542662426829338
+      },
+      {
+        "threshold": 0.3,
+        "active": 6,
+        "mse": 0.019542662426829338
+      },
+      {
+        "threshold": 0.4,
+        "active": 6,
+        "mse": 0.019542662426829338
+      },
+      {
+        "threshold": 0.5,
+        "active": 6,
+        "mse": 0.019542662426829338
+      },
+      {
+        "threshold": 0.6,
+        "active": 5,
+        "mse": 0.2876734137535095
+      },
+      {
+        "threshold": 0.7,
+        "active": 4,
+        "mse": 0.7584611177444458
+      },
+      {
+        "threshold": 0.8,
+        "active": 3,
+        "mse": 1.5706077814102173
+      }
+    ],
+    "strong_gates": [
+      0.9151037931442261,
+      0.8687861561775208,
+      0.8178926706314087,
+      0.7415316104888916,
+      0.6664829850196838,
+      0.5874019861221313,
+      0.09007321298122406,
+      0.03697707876563072,
+      0.14800971746444702,
+      0.06570982187986374,
+      0.13362935185432434,
+      0.10781202465295792,
+      0.03842676058411598,
+      0.046096645295619965,
+      0.07388447970151901,
+      0.09464617818593979,
+      0.16306999325752258,
+      0.07309623062610626,
+      0.06148437783122063,
+      0.05103442817926407,
+      0.11141956597566605,
+      0.05650680139660835,
+      0.117732934653759,
+      0.16494376957416534
+    ]
+  },
+  "analysis": "Weak regularization left 6 gates above 0.5 with mean 0.4684; strong regularization left 6 with mean 0.2597. The frozen threshold sweep selected 0.2, 6 active channels, and validation MSE 0.019543. Continuous gates still require physical rebuilding.",
+  "conclusion": "Learnable gates turn structure selection into optimization, but deployment still requires a separately validated discrete architecture."
+}

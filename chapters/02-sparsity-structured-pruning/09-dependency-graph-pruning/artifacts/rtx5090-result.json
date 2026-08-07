@@ -1,0 +1,24 @@
+{
+  "lesson": 9,
+  "title": "Residual, Concat, and Dependency-Graph Pruning",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260817
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "mismatch_captured": true,
+    "mismatch_message": "The size of tensor a (8) must match the size of tensor b (16) at non-singleton dimension 1",
+    "retained_channels": 8,
+    "valid_output_channels": 12,
+    "valid_max_error": 0.0004602670669555664,
+    "full_parameters": 1536,
+    "narrow_parameters": 768
+  },
+  "analysis": "Pruning only one additive branch produced a captured shape failure: `The size of tensor a (8) must match the size of tensor b (16) at non-singleton dimension 1`. The synchronized group retained 8 channels across both branches, normalization state, and the consumer; it produced 12 output channels with 4.603e-04 control drift.",
+  "conclusion": "Structural pruning at graph merges is a coupled group operation, never an isolated tensor slice."
+}

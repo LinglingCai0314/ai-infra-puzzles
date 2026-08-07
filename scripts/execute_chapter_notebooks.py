@@ -51,6 +51,12 @@ def main() -> int:
         from enrich_chapter01_delivery import main as enrich_delivery
 
         enrich_delivery()
+    elif args.chapter == "02":
+        # Refresh notes and theory cells from the newly written artifacts while
+        # retaining outputs for code cells whose reviewed source is unchanged.
+        from build_chapter02_lessons import build_chapter
+
+        build_chapter(refresh_chapter_readme=False)
     print(f"Executed {len(notebooks)} notebooks successfully")
     return 0
 

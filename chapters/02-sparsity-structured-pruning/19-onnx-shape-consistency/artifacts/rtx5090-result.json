@@ -1,0 +1,117 @@
+{
+  "lesson": 19,
+  "title": "ONNX Export, Graph Repair, and Shape Consistency",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260827
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "onnx_available": true,
+    "onnxruntime_available": true,
+    "export_succeeded": true,
+    "checker_passed": true,
+    "shape_inference_passed": true,
+    "ort_executed": true,
+    "ort_max_error": 5.960464477539063e-08,
+    "onnx_bytes": 1722,
+    "inferred_shapes": [
+      {
+        "name": "/proj/Gemm_output_0",
+        "dims": [
+          "batch",
+          7
+        ]
+      },
+      {
+        "name": "/gate/MatMul_output_0",
+        "dims": [
+          "batch",
+          7
+        ]
+      },
+      {
+        "name": "/Add_output_0",
+        "dims": [
+          "batch",
+          7
+        ]
+      },
+      {
+        "name": "/Constant_output_0",
+        "dims": []
+      },
+      {
+        "name": "/Div_output_0",
+        "dims": [
+          "batch",
+          7
+        ]
+      },
+      {
+        "name": "/Erf_output_0",
+        "dims": [
+          "batch",
+          7
+        ]
+      },
+      {
+        "name": "/Constant_1_output_0",
+        "dims": []
+      },
+      {
+        "name": "/Add_1_output_0",
+        "dims": [
+          "batch",
+          7
+        ]
+      },
+      {
+        "name": "/Mul_output_0",
+        "dims": [
+          "batch",
+          7
+        ]
+      },
+      {
+        "name": "/Constant_2_output_0",
+        "dims": []
+      },
+      {
+        "name": "/Mul_1_output_0",
+        "dims": [
+          "batch",
+          7
+        ]
+      },
+      {
+        "name": "logits",
+        "dims": [
+          "batch",
+          3
+        ]
+      }
+    ],
+    "initializer_shapes": {
+      "proj.weight": [
+        7,
+        12
+      ],
+      "gate.weight": [
+        7,
+        5
+      ],
+      "out.weight": [
+        3,
+        7
+      ]
+    },
+    "message": ""
+  },
+  "analysis": "ONNX export/checker/shape-inference gates were True/True/True; ONNX Runtime executed=True with max error 5.960e-08. The graph occupied 1,722 bytes and retained the physical width 7 through both input projections and the output consumer.",
+  "conclusion": "A pruned ONNX graph is deliverable only after structural checks and independent runtime parity confirm the new shape contract."
+}

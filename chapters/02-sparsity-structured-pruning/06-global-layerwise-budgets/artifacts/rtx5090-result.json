@@ -1,0 +1,35 @@
+{
+  "lesson": 6,
+  "title": "Global Sparsity and Layer-wise Budget Allocation",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260814
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "uniform_rmse": 0.06727341562509537,
+    "global_rmse": 0.06232653558254242,
+    "aware_rmse": 0.06144710257649422,
+    "uniform_cosine": 0.8347758054733276,
+    "global_cosine": 0.8603799939155579,
+    "aware_cosine": 0.8644721508026123,
+    "total_sparsity": 0.5,
+    "most_sensitive_layer": "4.weight",
+    "sensitivities": {
+      "0.weight": 0.015526210889220238,
+      "2.weight": 0.015088478103280067,
+      "4.weight": 0.016306765377521515
+    },
+    "aware_layer_sparsity": {
+      "0.weight": 0.41796875,
+      "2.weight": 0.611083984375,
+      "4.weight": 0.3837890625
+    }
+  },
+  "analysis": "All candidates used approximately 50.0% global sparsity. Held-out RMSE was 0.067273 for uniform, 0.062327 for global magnitude, and 0.061447 for the sensitivity-adjusted allocation. The calibration sweep identified `4.weight` as most sensitive. This validates the budget experiment, not optimality of the heuristic.",
+  "conclusion": "A global target needs a measured allocation rule; uniform layer rates are merely one candidate."
+}

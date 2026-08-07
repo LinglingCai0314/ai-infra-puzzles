@@ -1,0 +1,42 @@
+{
+  "lesson": 16,
+  "title": "TensorFlow MOT and the Keras Pruning/Export Lifecycle",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260824
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "tensorflow_available": false,
+    "tfmot_available": false,
+    "schedule_steps": [
+      0,
+      10,
+      20,
+      30,
+      40,
+      50,
+      60
+    ],
+    "schedule_values": [
+      0.0,
+      0.0,
+      0.4625,
+      0.7000000000000001,
+      0.7875000000000001,
+      0.8,
+      0.8
+    ],
+    "mid_schedule_sparsity": 0.7000000000000001,
+    "final_schedule_sparsity": 0.8,
+    "native_probe_executed": false,
+    "native_message": "TensorFlow/TFMOT not both available",
+    "lifecycle_ready": false
+  },
+  "analysis": "The cubic schedule moved from 0.0% at step 10 to 70.0% at step 30 and 80.0% at step 50. TensorFlow/TFMOT availability was False/False, so native wrapper stripping executed=False. Missing native stages remain false rather than inferred.",
+  "conclusion": "Keras pruning is a versioned train-strip-convert lifecycle; a missing native stack must remain visibly unexecuted."
+}

@@ -1,0 +1,43 @@
+{
+  "lesson": 4,
+  "title": "Closing the Loop: Train, Prune, Recover, and Re-evaluate",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "python": "3.12.13",
+    "seed": 20260812
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "dense_accuracy": 0.9315476417541504,
+    "oneshot_immediate_accuracy": 0.9047619104385376,
+    "oneshot_recovered_accuracy": 0.9136905074119568,
+    "gradual_recovered_accuracy": 0.9136905074119568,
+    "final_sparsity": 0.6996527777777778,
+    "recovery_steps_per_route": 36,
+    "gradual_trajectory": [
+      {
+        "stage": 1,
+        "target": 0.3,
+        "immediate_accuracy": 0.9315476417541504,
+        "recovered_accuracy": 0.9345238208770752
+      },
+      {
+        "stage": 2,
+        "target": 0.5,
+        "immediate_accuracy": 0.9285714626312256,
+        "recovered_accuracy": 0.9226190447807312
+      },
+      {
+        "stage": 3,
+        "target": 0.7,
+        "immediate_accuracy": 0.9077380895614624,
+        "recovered_accuracy": 0.9136905074119568
+      }
+    ]
+  },
+  "analysis": "The dense toy classifier reached 93.2%. One-shot 70% pruning changed validation accuracy immediately to 90.5% and recovered to 91.4% after 36 updates. The staged route finished at 91.4% with 70.0% zeros under the same update budget. This isolates the support trajectory on one synthetic task; it is not a universal schedule ranking.",
+  "conclusion": "A pruning result is a trajectory with a support constraint and recovery budget, not a mask applied once."
+}
