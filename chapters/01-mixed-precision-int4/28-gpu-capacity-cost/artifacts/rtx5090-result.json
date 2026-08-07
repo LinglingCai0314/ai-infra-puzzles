@@ -1,0 +1,46 @@
+{
+  "assumptions": {
+    "context": 8192,
+    "head_dim": 128,
+    "kv_heads": 8,
+    "layers": 80,
+    "parameters": 70000000000
+  },
+  "conclusion": "Arithmetic capacity projections used live GPU memory but did not claim that a 70B engine loaded or met latency SLOs.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "capacity-model",
+  "executed_at_utc": "2026-08-07T14:46:23+00:00",
+  "lesson": 28,
+  "live_memory": {
+    "free_gib": 30.863,
+    "total_gib": 31.358
+  },
+  "plans": {
+    "bf16_weights_bf16_kv": {
+      "kv_per_request_gib": 2.5,
+      "projected_requests": 0,
+      "single_gpu_weight_fit": false,
+      "weight_gib": 130.385
+    },
+    "int4_ideal_weights_bf16_kv": {
+      "kv_per_request_gib": 2.5,
+      "projected_requests": 0,
+      "single_gpu_weight_fit": false,
+      "weight_gib": 32.596
+    },
+    "int4_ideal_weights_int8_kv": {
+      "kv_per_request_gib": 1.25,
+      "projected_requests": 0,
+      "single_gpu_weight_fit": false,
+      "weight_gib": 32.596
+    }
+  },
+  "schema_version": 1
+}

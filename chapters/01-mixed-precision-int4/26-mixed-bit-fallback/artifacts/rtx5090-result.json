@@ -1,0 +1,52 @@
+{
+  "assembled_output_error": {
+    "cosine": 0.97619838,
+    "mae": 0.0019622,
+    "max_abs": 0.01424789,
+    "rmse": 0.00248394
+  },
+  "average_weight_bits": 5.333,
+  "conclusion": "A budgeted mixed-bit candidate spent extra precision on measured sensitive layers and was re-evaluated end to end.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:46:17+00:00",
+  "int8_fallback_layers": [
+    0,
+    1
+  ],
+  "layer_sensitivity": [
+    {
+      "layer": 0,
+      "rmse": 0.0013786
+    },
+    {
+      "layer": 1,
+      "rmse": 0.00130424
+    },
+    {
+      "layer": 2,
+      "rmse": 0.00120898
+    },
+    {
+      "layer": 3,
+      "rmse": 0.00125767
+    },
+    {
+      "layer": 4,
+      "rmse": 0.00121797
+    },
+    {
+      "layer": 5,
+      "rmse": 0.00121779
+    }
+  ],
+  "lesson": 26,
+  "schema_version": 1
+}

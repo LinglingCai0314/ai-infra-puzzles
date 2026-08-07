@@ -1,0 +1,36 @@
+{
+  "conclusion": "The handoff contract was validated; absent packages remain explicit and no engine benchmark was claimed.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "compatibility-probe",
+  "executed_at_utc": "2026-08-07T14:45:52+00:00",
+  "lesson": 17,
+  "manifest": {
+    "base_revision": "example-frozen-revision",
+    "handoff": {
+      "modelopt": false,
+      "tensorrt_llm": false
+    },
+    "recipe": {
+      "calibration": "synthetic-v1",
+      "format": "INT4",
+      "group_size": 64
+    },
+    "rollback_revision": "bf16-baseline-v1",
+    "scale_sha256": "4fc993da767f7ef4e3cbfb4051a3448a622bc6955ec882016a7dd0ea0e5d117e"
+  },
+  "manifest_complete": true,
+  "numerical_probe": {
+    "cosine": 0.9942652,
+    "mae": 0.0911599,
+    "max_abs": 0.32194212,
+    "rmse": 0.10744566
+  },
+  "schema_version": 1
+}

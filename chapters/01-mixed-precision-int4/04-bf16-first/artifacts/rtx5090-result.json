@@ -1,0 +1,111 @@
+{
+  "conclusion": "BF16 preserved the large-value range while FP16 and BF16 showed different accuracy/performance trade-offs.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:45:14+00:00",
+  "formats": {
+    "bfloat16": {
+      "error": {
+        "cosine": 0.99999589,
+        "mae": 0.08880086,
+        "max_abs": 0.71353149,
+        "rmse": 0.11277169
+      },
+      "timing": {
+        "median_ms": 0.04416,
+        "p90_ms": 0.044704,
+        "repeats": 12,
+        "samples_ms": [
+          0.045888,
+          0.044128,
+          0.043488,
+          0.0432,
+          0.043456,
+          0.044192,
+          0.044064,
+          0.044928,
+          0.04432,
+          0.044416,
+          0.044704,
+          0.043872
+        ],
+        "warmup": 4
+      }
+    },
+    "float16": {
+      "error": {
+        "cosine": 0.99999994,
+        "mae": 0.01110053,
+        "max_abs": 0.09114075,
+        "rmse": 0.01410638
+      },
+      "timing": {
+        "median_ms": 0.044608,
+        "p90_ms": 0.044832,
+        "repeats": 12,
+        "samples_ms": [
+          0.046752,
+          0.045152,
+          0.044736,
+          0.043136,
+          0.044512,
+          0.043968,
+          0.04464,
+          0.044608,
+          0.044608,
+          0.044832,
+          0.044544,
+          0.042784
+        ],
+        "warmup": 4
+      }
+    },
+    "float32": {
+      "error": {
+        "cosine": 1.0,
+        "mae": 0.0,
+        "max_abs": 0.0,
+        "rmse": 0.0
+      },
+      "timing": {
+        "median_ms": 0.133376,
+        "p90_ms": 0.134176,
+        "repeats": 12,
+        "samples_ms": [
+          0.145792,
+          0.136,
+          0.133344,
+          0.133856,
+          0.134176,
+          0.131936,
+          0.131904,
+          0.132704,
+          0.133408,
+          0.131776,
+          0.132832,
+          0.133664
+        ],
+        "warmup": 4
+      }
+    }
+  },
+  "lesson": 4,
+  "matrix_shape": [
+    1536,
+    1536
+  ],
+  "range_probe": {
+    "bf16_1e5_finite": true,
+    "bf16_max": 3.3895313892515355e+38,
+    "fp16_1e5_finite": false,
+    "fp16_max": 65504.0
+  },
+  "schema_version": 1
+}

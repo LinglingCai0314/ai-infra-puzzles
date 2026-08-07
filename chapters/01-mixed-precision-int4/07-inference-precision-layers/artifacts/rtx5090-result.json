@@ -1,0 +1,48 @@
+{
+  "allocation_probe": {
+    "bytes": 16777216,
+    "dtype": "torch.bfloat16",
+    "shape": [
+      2,
+      4096,
+      8,
+      128
+    ]
+  },
+  "conclusion": "Weights, activations, and KV cache require separate precision and memory ledger entries.",
+  "configuration": {
+    "batch": 1,
+    "head_dim": 128,
+    "kv_heads": 8,
+    "layers": 32
+  },
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:45:23+00:00",
+  "lesson": 7,
+  "projected_kv": [
+    {
+      "bf16_gib": 0.25,
+      "int8_gib": 0.125,
+      "sequence": 2048
+    },
+    {
+      "bf16_gib": 1.0,
+      "int8_gib": 0.5,
+      "sequence": 8192
+    },
+    {
+      "bf16_gib": 4.0,
+      "int8_gib": 2.0,
+      "sequence": 32768
+    }
+  ],
+  "schema_version": 1
+}

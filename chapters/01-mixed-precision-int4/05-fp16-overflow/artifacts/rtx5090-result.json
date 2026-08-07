@@ -1,0 +1,102 @@
+{
+  "conclusion": "Scaling changed gradient representability but could not repair an FP16 value that had already overflowed.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:45:17+00:00",
+  "forward_overflow_at_1e5": true,
+  "gradient_sweep": [
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 1.0,
+      "magnitude": 1e-08,
+      "zero_fraction": 1.0
+    },
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 256.0,
+      "magnitude": 1e-08,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 65536.0,
+      "magnitude": 1e-08,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 1.0,
+      "magnitude": 1e-05,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 256.0,
+      "magnitude": 1e-05,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 65536.0,
+      "magnitude": 1e-05,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 1.0,
+      "magnitude": 1.0,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 256.0,
+      "magnitude": 1.0,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 0.0,
+      "inf_fraction": 1.0,
+      "loss_scale": 65536.0,
+      "magnitude": 1.0,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 1.0,
+      "inf_fraction": 0.0,
+      "loss_scale": 1.0,
+      "magnitude": 1000.0,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 0.0,
+      "inf_fraction": 1.0,
+      "loss_scale": 256.0,
+      "magnitude": 1000.0,
+      "zero_fraction": 0.0
+    },
+    {
+      "finite_fraction": 0.0,
+      "inf_fraction": 1.0,
+      "loss_scale": 65536.0,
+      "magnitude": 1000.0,
+      "zero_fraction": 0.0
+    }
+  ],
+  "lesson": 5,
+  "schema_version": 1
+}

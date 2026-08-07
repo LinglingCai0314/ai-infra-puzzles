@@ -1,0 +1,31 @@
+{
+  "conclusion": "A small packaging contract and checksum were validated without publishing checkpoint data.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:46:06+00:00",
+  "lesson": 22,
+  "manifest": {
+    "base_revision": "example-frozen-revision",
+    "bytes": 139264,
+    "format": "reference-int4",
+    "group_size": 64,
+    "rollback": "bf16-baseline-v1",
+    "runtime": "pytorch-reference",
+    "schema": 1,
+    "sha256": "bd46d8080937e2d0becaf647a75b0b1d03d2f54599c0203ed5357a6e126714de",
+    "shape": [
+      256,
+      512
+    ]
+  },
+  "manifest_complete": true,
+  "schema_version": 1,
+  "temporary_payload_deleted_after_check": true
+}

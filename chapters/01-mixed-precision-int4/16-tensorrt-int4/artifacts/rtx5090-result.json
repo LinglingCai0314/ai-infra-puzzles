@@ -1,0 +1,29 @@
+{
+  "codes_exact_after_unpack": true,
+  "conclusion": "Block Q/DQ and nibble packing were validated; TensorRT engine execution was not inferred from the reference path.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:45:49+00:00",
+  "group_size": 64,
+  "lesson": 16,
+  "packed_bytes": 262144,
+  "qdq_error": {
+    "cosine": 0.99425673,
+    "mae": 0.09142464,
+    "max_abs": 0.32329714,
+    "rmse": 0.10770572
+  },
+  "schema_version": 1,
+  "shape": [
+    512,
+    1024
+  ],
+  "tensorrt_installed": false
+}

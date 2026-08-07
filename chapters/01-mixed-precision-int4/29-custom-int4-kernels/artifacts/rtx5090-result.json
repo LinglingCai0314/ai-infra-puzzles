@@ -1,0 +1,63 @@
+{
+  "bf16_timing": {
+    "median_ms": 0.027136,
+    "p90_ms": 0.027488,
+    "repeats": 15,
+    "samples_ms": [
+      0.027136,
+      0.028192,
+      0.027424,
+      0.027456,
+      0.027136,
+      0.027488,
+      0.027136,
+      0.02704,
+      0.027072,
+      0.026848,
+      0.02704,
+      0.026912,
+      0.026112,
+      0.027904,
+      0.026432
+    ],
+    "warmup": 5
+  },
+  "composed_unpack_dequant_matmul": {
+    "median_ms": 0.32872,
+    "p90_ms": 0.330656,
+    "repeats": 10,
+    "samples_ms": [
+      0.330656,
+      0.330304,
+      0.32256,
+      0.330848,
+      0.325088,
+      0.32976,
+      0.322944,
+      0.330496,
+      0.322944,
+      0.32768
+    ],
+    "warmup": 3
+  },
+  "conclusion": "The composed reference exposed integration overhead; it is a semantic baseline, not a custom-kernel performance claim.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:46:25+00:00",
+  "implementation": "composed PyTorch reference, not fused CUTLASS",
+  "lesson": 29,
+  "packed_bytes": 8388608,
+  "schema_version": 1,
+  "shape_mkn": [
+    32,
+    4096,
+    4096
+  ]
+}

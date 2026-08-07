@@ -1,0 +1,32 @@
+{
+  "conclusion": "Multiple frozen metrics exposed the synthetic INT4 regression; they are not scores for a named language model.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:46:09+00:00",
+  "lesson": 23,
+  "schema_version": 1,
+  "synthetic_probe": {
+    "baseline_loss": 32.0494919,
+    "baseline_perplexity": 82969305808896.0,
+    "candidate_loss": 32.2126198,
+    "candidate_perplexity": 97670416826368.0,
+    "slices": {
+      "first_half": {
+        "top1_agreement": 0.838379
+      },
+      "second_half": {
+        "top1_agreement": 0.835449
+      }
+    },
+    "tokens": 4096,
+    "top1_agreement": 0.836914,
+    "vocab": 256
+  }
+}

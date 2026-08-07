@@ -1,0 +1,57 @@
+{
+  "conclusion": "Smaller groups reduced local range sharing at the cost of more scale metadata.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "numerical-model",
+  "executed_at_utc": "2026-08-07T14:45:26+00:00",
+  "group_results": [
+    {
+      "effective_bits_per_weight": 5.0,
+      "error": {
+        "cosine": 0.99218798,
+        "mae": 0.11072622,
+        "max_abs": 2.84089684,
+        "rmse": 0.20031616
+      },
+      "group_size": 16,
+      "saturation_fraction": 0.077793,
+      "scale_count": 65536
+    },
+    {
+      "effective_bits_per_weight": 4.25,
+      "error": {
+        "cosine": 0.97160149,
+        "mae": 0.25374436,
+        "max_abs": 3.00970507,
+        "rmse": 0.38436082
+      },
+      "group_size": 64,
+      "saturation_fraction": 0.019199,
+      "scale_count": 16384
+    },
+    {
+      "effective_bits_per_weight": 4.125,
+      "error": {
+        "cosine": 0.95087254,
+        "mae": 0.37589782,
+        "max_abs": 3.29612494,
+        "rmse": 0.50811219
+      },
+      "group_size": 128,
+      "saturation_fraction": 0.008685,
+      "scale_count": 8192
+    }
+  ],
+  "lesson": 8,
+  "schema_version": 1,
+  "shape": [
+    1024,
+    1024
+  ]
+}

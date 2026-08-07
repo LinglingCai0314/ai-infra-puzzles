@@ -1,0 +1,32 @@
+{
+  "conclusion": "The gate matrix kept unexecuted 70B engine, quality, and service tests explicit; arithmetic compression alone was insufficient.",
+  "decision": "not_ready_for_service",
+  "deployment_gates": {
+    "backend_engine_built": false,
+    "quality_suite_passed": false,
+    "rollback_artifact_defined": true,
+    "service_slo_passed": false,
+    "single_gpu_ideal_weight_fit": false,
+    "toy_mixed_bit_rmse_lte_2": false
+  },
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "capacity-model",
+  "executed_at_utc": "2026-08-07T14:46:28+00:00",
+  "ideal_int4_weight_gib": 32.596,
+  "lesson": 30,
+  "live_gpu_total_gib": 31.358,
+  "schema_version": 1,
+  "toy_mixed_bit_error": {
+    "cosine": 0.99336779,
+    "mae": 2.96422219,
+    "max_abs": 16.94711685,
+    "rmse": 3.72017455
+  }
+}

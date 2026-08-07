@@ -1,0 +1,63 @@
+{
+  "alpha_sweep": [
+    {
+      "alpha": 0.0,
+      "heldout_error": {
+        "cosine": 0.99425644,
+        "mae": 2.19978571,
+        "max_abs": 11.98613548,
+        "rmse": 2.77175641
+      }
+    },
+    {
+      "alpha": 0.25,
+      "heldout_error": {
+        "cosine": 0.99609649,
+        "mae": 1.80269086,
+        "max_abs": 10.36782646,
+        "rmse": 2.27352023
+      }
+    },
+    {
+      "alpha": 0.5,
+      "heldout_error": {
+        "cosine": 0.99506319,
+        "mae": 2.01121306,
+        "max_abs": 12.63252926,
+        "rmse": 2.5623045
+      }
+    },
+    {
+      "alpha": 0.75,
+      "heldout_error": {
+        "cosine": 0.98953247,
+        "mae": 2.91586828,
+        "max_abs": 21.55734253,
+        "rmse": 3.74847484
+      }
+    },
+    {
+      "alpha": 1.0,
+      "heldout_error": {
+        "cosine": 0.97454381,
+        "mae": 4.58608341,
+        "max_abs": 32.47526932,
+        "rmse": 5.89838266
+      }
+    }
+  ],
+  "best_alpha": 0.25,
+  "conclusion": "Activation-aware scaling changed held-out W4A16 output error; no production AWQ kernel was claimed.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "numerical-model",
+  "executed_at_utc": "2026-08-07T14:45:37+00:00",
+  "lesson": 12,
+  "schema_version": 1
+}

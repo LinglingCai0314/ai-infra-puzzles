@@ -1,0 +1,51 @@
+{
+  "conclusion": "Framework-level FP8 was tested independently; NVFP4 requires a supported library recipe and operator evidence.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:46:01+00:00",
+  "lesson": 20,
+  "probe": {
+    "api": "torch._scaled_mm",
+    "fp8_error": {
+      "cosine": 0.99928468,
+      "mae": 0.96194851,
+      "max_abs": 6.1875,
+      "rmse": 1.20845497
+    },
+    "fp8_gemm": "success",
+    "fp8_timing": {
+      "median_ms": 0.017568,
+      "p90_ms": 0.01856,
+      "repeats": 15,
+      "samples_ms": [
+        0.028544,
+        0.020288,
+        0.01856,
+        0.017568,
+        0.017568,
+        0.01824,
+        0.017312,
+        0.01728,
+        0.016928,
+        0.0176,
+        0.017504,
+        0.016864,
+        0.017824,
+        0.017216,
+        0.017408
+      ],
+      "warmup": 5
+    },
+    "nvfp4_backend": "not_measured",
+    "torch_float8_dtype": true,
+    "transformer_engine_installed": false
+  },
+  "schema_version": 1
+}

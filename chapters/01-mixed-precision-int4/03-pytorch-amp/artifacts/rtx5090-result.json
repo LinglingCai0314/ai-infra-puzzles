@@ -1,0 +1,60 @@
+{
+  "conclusion": "The full autocast-scale-backward-step-update loop completed with finite gradients.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:45:11+00:00",
+  "history": [
+    {
+      "grads_finite": true,
+      "loss": 1.0376294,
+      "output_dtype": "torch.bfloat16",
+      "scale": 65536.0,
+      "step": 0
+    },
+    {
+      "grads_finite": true,
+      "loss": 0.9307048,
+      "output_dtype": "torch.bfloat16",
+      "scale": 65536.0,
+      "step": 1
+    },
+    {
+      "grads_finite": true,
+      "loss": 0.836614,
+      "output_dtype": "torch.bfloat16",
+      "scale": 65536.0,
+      "step": 2
+    },
+    {
+      "grads_finite": true,
+      "loss": 0.751017,
+      "output_dtype": "torch.bfloat16",
+      "scale": 65536.0,
+      "step": 3
+    },
+    {
+      "grads_finite": true,
+      "loss": 0.6714464,
+      "output_dtype": "torch.bfloat16",
+      "scale": 65536.0,
+      "step": 4
+    },
+    {
+      "grads_finite": true,
+      "loss": 0.5965154,
+      "output_dtype": "torch.bfloat16",
+      "scale": 65536.0,
+      "step": 5
+    }
+  ],
+  "lesson": 3,
+  "parameter_dtype": "torch.float32",
+  "schema_version": 1
+}

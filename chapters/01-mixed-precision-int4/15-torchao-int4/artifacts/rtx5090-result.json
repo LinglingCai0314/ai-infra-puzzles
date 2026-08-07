@@ -1,0 +1,21 @@
+{
+  "conclusion": "TorchAO was installed, but the native INT4 path did not execute; the dependency failure is preserved as a compatibility result.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "compatibility-probe",
+  "executed_at_utc": "2026-08-07T14:45:46+00:00",
+  "lesson": 15,
+  "schema_version": 1,
+  "torchao": {
+    "conversion": "failed",
+    "error_message": "Requires mslk >= 1.0.0",
+    "error_type": "ImportError",
+    "torchao_installed": true
+  }
+}

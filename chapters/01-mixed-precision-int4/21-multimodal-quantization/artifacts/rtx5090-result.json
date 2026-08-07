@@ -1,0 +1,38 @@
+{
+  "conclusion": "Patch-projection error changed with image distribution; no full VLM quality conclusion was made.",
+  "domain_errors": {
+    "high_contrast": {
+      "cosine": 0.99766618,
+      "mae": 0.04951562,
+      "max_abs": 0.35846561,
+      "rmse": 0.06301098
+    },
+    "normal": {
+      "cosine": 0.99753112,
+      "mae": 0.03256194,
+      "max_abs": 0.20235768,
+      "rmse": 0.04085071
+    }
+  },
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "pytorch-gpu",
+  "executed_at_utc": "2026-08-07T14:46:04+00:00",
+  "lesson": 21,
+  "patch_projection": {
+    "group_size": 192,
+    "weight_shape": [
+      64,
+      3,
+      16,
+      16
+    ]
+  },
+  "schema_version": 1
+}

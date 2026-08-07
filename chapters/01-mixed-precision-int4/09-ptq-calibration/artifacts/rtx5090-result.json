@@ -1,0 +1,51 @@
+{
+  "calibration_results": {
+    "balanced": {
+      "clipping_fraction": 0.00025001,
+      "error": {
+        "cosine": 0.99894321,
+        "mae": 0.0260779,
+        "max_abs": 20.09401703,
+        "rmse": 0.08504558
+      },
+      "scale": 0.10047337
+    },
+    "narrow": {
+      "clipping_fraction": 0.02647752,
+      "error": {
+        "cosine": 0.98645717,
+        "mae": 0.04251424,
+        "max_abs": 27.9039135,
+        "rmse": 0.31739485
+      },
+      "scale": 0.03945856
+    },
+    "outlier_aware": {
+      "clipping_fraction": 0.0,
+      "error": {
+        "cosine": 0.99911618,
+        "mae": 0.06723144,
+        "max_abs": 0.13448334,
+        "rmse": 0.07762861
+      },
+      "scale": 0.26896697
+    }
+  },
+  "conclusion": "Held-out coverage, not calibration reconstruction, determined clipping and error.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evaluation_shape": [
+    1664,
+    512
+  ],
+  "evidence_label": "numerical-model",
+  "executed_at_utc": "2026-08-07T14:45:28+00:00",
+  "lesson": 9,
+  "schema_version": 1
+}

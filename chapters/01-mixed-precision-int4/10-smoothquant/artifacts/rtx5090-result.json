@@ -1,0 +1,72 @@
+{
+  "alpha_sweep": [
+    {
+      "alpha": 0.0,
+      "float_equivalence_max_abs": 6.1e-05,
+      "output_error": {
+        "cosine": 0.99824685,
+        "mae": 2.62906098,
+        "max_abs": 15.94864273,
+        "rmse": 3.29818392
+      }
+    },
+    {
+      "alpha": 0.25,
+      "float_equivalence_max_abs": 4.6e-05,
+      "output_error": {
+        "cosine": 0.99955261,
+        "mae": 1.32819116,
+        "max_abs": 7.69526672,
+        "rmse": 1.6633786
+      }
+    },
+    {
+      "alpha": 0.5,
+      "float_equivalence_max_abs": 6.1e-05,
+      "output_error": {
+        "cosine": 0.99978542,
+        "mae": 0.91851175,
+        "max_abs": 5.98374176,
+        "rmse": 1.15184021
+      }
+    },
+    {
+      "alpha": 0.75,
+      "float_equivalence_max_abs": 6.1e-05,
+      "output_error": {
+        "cosine": 0.99956822,
+        "mae": 1.30419183,
+        "max_abs": 7.36639786,
+        "rmse": 1.63480675
+      }
+    },
+    {
+      "alpha": 1.0,
+      "float_equivalence_max_abs": 4.6e-05,
+      "output_error": {
+        "cosine": 0.99832261,
+        "mae": 2.57341313,
+        "max_abs": 14.6479187,
+        "rmse": 3.22415543
+      }
+    }
+  ],
+  "conclusion": "Reciprocal scaling preserved the floating-point layer while changing combined W8A8 error.",
+  "environment": {
+    "compute_capability": "12.0",
+    "cuda_runtime": "13.0",
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_gib": 31.358,
+    "python": "3.12.13",
+    "torch": "2.12.0"
+  },
+  "evidence_label": "numerical-model",
+  "executed_at_utc": "2026-08-07T14:45:31+00:00",
+  "lesson": 10,
+  "schema_version": 1,
+  "shape": [
+    512,
+    512,
+    384
+  ]
+}

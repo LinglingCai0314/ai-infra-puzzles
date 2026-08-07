@@ -1,0 +1,73 @@
+{
+  "schema_version": 2,
+  "lesson": 1,
+  "evidence_label": "native-backend",
+  "experiment_id": "20260807-rtx5090-notebook-bf16-vs-torchao-int4",
+  "status": "verified-notebook-run",
+  "date": "2026-08-07",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "gpu_memory_mib": 32607,
+    "compute_capability": "12.0",
+    "driver": "595.71.05",
+    "python": "3.12.13",
+    "torch": "2.12.0",
+    "cuda_runtime": "13.0",
+    "transformers": "5.12.0",
+    "torchao": "0.17.0"
+  },
+  "model": {
+    "id": "Qwen/Qwen2.5-1.5B-Instruct",
+    "revision": "989aa7980e4cf806f80c7fef2b1adb7bc71aa306"
+  },
+  "candidate": {
+    "weight_format": "TorchAO weight-only INT4",
+    "group_size": 128,
+    "input_compute_format": "BF16",
+    "int4_module_count": 113,
+    "remaining_bf16_linear_count": 84,
+    "verified_operator": "aten::_weight_int4pack_mm"
+  },
+  "memory_gib": {
+    "bf16_unique_tensor_storage": 2.875392436981201,
+    "int4_unique_tensor_storage": 1.319150447845459,
+    "bf16_allocated_after_load": 2.8762474060058594,
+    "int4_allocated_after_load": 1.3362922668457031,
+    "bf16_runtime_peak_allocated": 3.2275733947753906,
+    "int4_runtime_peak_allocated": 1.6876182556152344
+  },
+  "prefill_median_ms": {
+    "128": {
+      "bf16": 9.943688521161675,
+      "int4": 13.619389152154326
+    },
+    "512": {
+      "bf16": 11.3183434586972,
+      "int4": 43.96306513808668
+    },
+    "1024": {
+      "bf16": 19.782889634370804,
+      "int4": 85.47845389693975
+    }
+  },
+  "generation": {
+    "prompt_tokens": 128,
+    "new_tokens": 64,
+    "bf16_total_median_ms": 643.1233598850667,
+    "int4_total_median_ms": 673.6420029774308,
+    "bf16_approx_decode_tokens_per_s": 101.07715533908464,
+    "int4_approx_decode_tokens_per_s": 96.9663745747692,
+    "decode_note": "Approximate median generation time minus separately measured median prefill time."
+  },
+  "quality": {
+    "fixed_question_count": 20,
+    "bf16_accuracy": 0.9,
+    "int4_accuracy": 0.85,
+    "generated_answer_agreement": 0.95,
+    "last_logit_top1_agreement": 0.949999988079071,
+    "last_logit_cosine_mean": 0.9554260969161987,
+    "scope_note": "Small fixed regression sample; not a general model-quality estimate."
+  },
+  "conclusion": "TorchAO INT4 reduced model storage and active memory, but it was slower than BF16 for the measured prefill and generation workload on this RTX 5090 stack.",
+  "decision": "Keep BF16 as the default performance path; retain this INT4 implementation only as a capacity candidate."
+}
