@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from build_chapter02_lessons import CHAPTER, LESSONS, notebook, read_artifact, result_table
+from tutorial_guides import CHAPTER_02_GUIDES
 
 
 ROOT = CHAPTER.parents[1]
@@ -21,11 +22,19 @@ REQUIRED_HEADINGS = (
     "## 3. Translate the theory into an experiment",
     "## 4. Read the checked-in RTX 5090 result",
     "## 5. Solve the puzzle and make a decision",
-    "## 6. Follow the theory inside the notebook",
     "## Reproduce",
     "## Extend the experiment",
     "## Evidence boundary",
     "## References",
+)
+
+BANNED_BOILERPLATE = (
+    "engineering question is not whether a definition can be repeated",
+    "Before opening Lesson",
+    "tracks three layers through",
+    "The inspectable invariant for",
+    "comparison is deliberately small enough",
+    "The reader loop for",
 )
 
 
@@ -84,7 +93,9 @@ def main() -> int:
         notes[directory.name] = note
         check_relative_links(note_path, note, issues)
 
-        if words(note) < 1_000:
+        # Concise, lesson-specific prose is preferable to padding every lesson
+        # with the same delivery-language paragraphs.
+        if words(note) < 750:
             issues.append(f"{directory.name}: README has only {words(note)} words")
         if sum(line.startswith("|---") for line in note.splitlines()) < 3:
             issues.append(f"{directory.name}: README needs three explanatory tables")
@@ -93,6 +104,10 @@ def main() -> int:
         for heading in REQUIRED_HEADINGS:
             if heading not in note:
                 issues.append(f"{directory.name}: missing heading {heading}")
+        if no in CHAPTER_02_GUIDES:
+            for signal in ("```mermaid", "### Walk it step by step"):
+                if signal not in note:
+                    issues.append(f"{directory.name}: missing curated visual guide signal {signal}")
         if result_table(spec, artifact) not in note:
             issues.append(f"{directory.name}: README result table is not synchronized")
         normalized_note = re.sub(r"\s+", " ", note)
@@ -124,6 +139,10 @@ def main() -> int:
             issues.append(f"{directory.name}: notebook theory has only {words(markdown_text)} words")
         if result_table(spec, artifact) not in markdown_text:
             issues.append(f"{directory.name}: notebook result table is not synchronized")
+        if no in CHAPTER_02_GUIDES:
+            for signal in ("```mermaid", "### Walk it step by step"):
+                if signal not in markdown_text:
+                    issues.append(f"{directory.name}: notebook missing curated visual guide signal {signal}")
         if len(code_cells) != 3:
             issues.append(f"{directory.name}: expected three readable code stages")
         if any(cell.get("execution_count") is None for cell in code_cells):
@@ -158,13 +177,20 @@ def main() -> int:
             issues.append(f"{name}: {ratio:.1%} of non-empty lines remain mass-shared")
     if len(set(notes.values())) != len(notes):
         issues.append("duplicate lesson README bodies detected")
+    combined_notes = "\n".join(notes.values())
+    for phrase in BANNED_BOILERPLATE:
+        if phrase in combined_notes:
+            issues.append(f"repetitive template phrase returned: {phrase}")
 
     if issues:
         print("Chapter 02 delivery audit failed:")
         for issue in issues:
             print(f"- {issue}")
         return 1
-    print("Chapter 02 delivery audit passed: 28 theory-rich READMEs, executed RTX 5090 notebooks, and synchronized artifacts")
+    print(
+        "Chapter 02 delivery audit passed: 28 concise theory READMEs with curated "
+        "visual guides, executed RTX 5090 notebooks, and synchronized artifacts"
+    )
     return 0
 
 

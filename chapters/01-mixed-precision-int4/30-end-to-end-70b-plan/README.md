@@ -48,6 +48,29 @@ cannot answer 70B task quality. Likewise, ideal `P/2` bytes ignores scale metada
 unquantized layers. Marking those distinctions in the final decision is part of the
 deliverable.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart TD
+  R["70B requirements + target SLO"] --> C["Capacity and topology model"]
+  C --> Q{"fits target hardware?"}
+  Q -->|"no"| X["revise format, parallelism,<br/>context, or concurrency"]
+  X --> C
+  Q -->|"yes"| P["small-model backend proof"]
+  P --> A["quantize pinned 70B artifact"]
+  A --> E["build full multi-GPU engine"]
+  E --> G["quality + load + service gates"]
+  G -->|"fail"| B["rollback or mixed-bit fallback"]
+  G -->|"pass"| S["staged release"]
+```
+
+### Walk it step by step
+
+1. **Reject impossible capacity plans early.** Estimate weight, KV-cache, runtime, and concurrency memory before choosing a quantizer.
+2. **Build a representative smaller proof.** Validate the exact format, backend, quality suite, and workload on a model that fits the available hardware.
+3. **Create the full-model artifact.** Quantize the pinned 70B checkpoint with reproducible calibration and packaging metadata.
+4. **Promote only with full-system evidence.** Require multi-GPU engine, load, quality, long-context, throughput, and rollback results from the target topology.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Combine live GPU capacity, a small CUDA mixed-bit quality probe, and a gate matrix to produce a bounded 70B deployment decision.
@@ -120,16 +143,6 @@ high cosine score to override task failures also weakens the gate graph. A plan 
 owners, artifacts, deadlines, observability, and rollback rehearsal may be complete on
 paper but unusable during an incident.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map BF16 rollback concept and unexecuted production
-gates and ideal 70B INT4 capacity plus a toy mixed-bit numerical probe back to the
-derivation. Verify the printed environment, then check that live GPU memory, 70B
-parameter count, 10% reserve, fixed toy threshold stayed fixed. Read ideal weight GiB,
-fit boolean, toy RMSE/cosine, six gate booleans, final decision before applying the
-acceptance gate; the artifact-writing cell retains the complete structured result from
-the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -152,13 +165,7 @@ all-passing critical gates should change the decision to canary-ready.
 
 ## Evidence boundary
 
-The calculation uses live GPU information and/or a CUDA probe, but it remains a planning
-model until a named full engine, quality suite, and service workload execute.
-
-The checked-in observation belongs to Lesson 30's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`capacity-model`](../README.md#evidence-labels).
 
 ## References
 

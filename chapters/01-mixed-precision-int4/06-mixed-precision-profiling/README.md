@@ -118,16 +118,6 @@ latency is risky. Conversely, timing without a trace can reward an unintended fa
 or cached result. Other traps include missing synchronization, timing tensor allocation,
 and selecting only the fastest sample.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map theoretical expectation that autocast selects
-BF16 for an eligible GEMM and actual timed autocast region plus captured PyTorch
-operator events back to the derivation. Verify the printed environment, then check that
-2048×2048 shape, seed, GPU, five warm-ups, fifteen CUDA-event samples stayed fixed. Read
-median/p90 latency and selected framework operator names before applying the acceptance
-gate; the artifact-writing cell retains the complete structured result from the recorded
-run.
-
 ## Reproduce
 
 From the repository root:
@@ -151,13 +141,7 @@ separate columns.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 06's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

@@ -33,6 +33,33 @@ generic prose with lesson-specific formulas, tensor objects, failure modes, and
 experiments. A numerical model can explain a mechanism; it cannot stand in for
 TensorRT, vLLM, CUTLASS, bitsandbytes, ModelOpt, or Transformer Engine execution.
 
+## Learning path at a glance
+
+```mermaid
+flowchart LR
+  A["Formats and dispatch<br/>Lessons 01–07"] --> B["Quantization mechanics<br/>Lessons 08–13"]
+  B --> C["Framework and runtime paths<br/>Lessons 14–21"]
+  C --> D["Validation and operations<br/>Lessons 22–30"]
+  A -. "shape and dtype evidence" .-> C
+  B -. "error and calibration evidence" .-> D
+```
+
+## How to read a lesson
+
+1. Make the prediction before opening the retained result.
+2. Map the diagram and derivation to the baseline and candidate in `lab.ipynb`.
+3. Verify the environment and frozen variables before comparing metrics.
+4. Reconcile notebook output with the JSON artifact, then apply the acceptance gate.
+
+## Evidence labels
+
+| Label | What it establishes |
+|---|---|
+| `pytorch-gpu` | CUDA execution through PyTorch, without inferring an unnamed native kernel |
+| `numerical-model` | A controlled mechanism, not a full paper or production reproduction |
+| `compatibility-probe` | Package or API availability and its exact success/failure boundary |
+| `capacity-model` | Transparent planning arithmetic anchored by measured CUDA facts |
+
 ## Lessons: theory transformed into evidence
 
 This is not only a file index. The middle column states the theoretical idea

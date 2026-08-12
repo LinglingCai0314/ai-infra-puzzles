@@ -114,15 +114,6 @@ Calling a Python composition a custom kernel is false. A fused kernel can also r
 if register pressure lowers occupancy or if unsupported shapes fall back, so shape
 coverage and dispatch must be audited.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map direct BF16 GEMM for shape M=32, K=N=4096 and
-PyTorch-composed unpack, sign restore, dequantization, and GEMM back to the derivation.
-Verify the printed environment, then check that same X/W values, group size 128, packed
-layout, GPU timing helper stayed fixed. Read packed bytes, BF16 median/p90, composed
-median/p90, implementation identity before applying the acceptance gate; the
-artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -145,13 +136,7 @@ values. Add a safe fallback for unsupported shapes.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 29's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

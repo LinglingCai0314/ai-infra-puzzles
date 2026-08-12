@@ -117,16 +117,6 @@ consumer share the same bad schema. Mutable model tags and missing tokenizer rev
 also break reproducibility. Never place secrets, local paths, proprietary weights, or
 unlicensed datasets in a public package to make a tutorial appear complete.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map unversioned in-memory reference weights with no
-handoff contract and temporary packed INT4 payload plus validated manifest and checksum
-back to the derivation. Verify the printed environment, then check that fixed tensor
-shape, group size, serializer, required-field set, rollback ID stayed fixed. Read
-payload bytes, SHA-256, required-field completeness, cleanup status before applying the
-acceptance gate; the artifact-writing cell retains the complete structured result from
-the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -149,13 +139,7 @@ as deliberate failure cases.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 22's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

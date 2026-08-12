@@ -45,6 +45,27 @@ Capacity improves only if the backend stores the quantized form persistently rat
 dequantizing a full copy. Latency may improve, stay flat, or worsen depending on fused
 attention support and scale handling.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  T["New token"] --> K["K projection"]
+  T --> V["V projection"]
+  K --> QK["quantize + store K"]
+  V --> QV["quantize + store V"]
+  QK --> C["growing KV cache"]
+  QV --> C
+  C --> D["dequantize or fused attention read"]
+  D --> A["attention output + quality check"]
+```
+
+### Walk it step by step
+
+1. **Write the cache shape.** Account for layers, batch, sequence length, KV heads, head dimension, K and V, and bytes per element.
+2. **Choose a scale lifetime.** Per-token, per-head, or per-block scales trade metadata and kernel work against error.
+3. **Quantize live cache tensors.** Include scale bytes and any staging buffers rather than reporting the nominal element width only.
+4. **Test attention and service behavior.** Validate attention-output error, long-context quality, latency, and concurrency capacity.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Quantize representative KV tensors to INT8 on CUDA, compare bytes and attention-output error, and project capacity across context lengths.
@@ -113,15 +134,6 @@ layer-dependent and long-range sensitivity. Another failure is to count extra ca
 as throughput without testing whether scheduler concurrency and attention latency
 actually improve.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map BF16 K and V tensors for one representative
-long-context attention slice and INT8 K/V plus explicit scale storage back to the
-derivation. Verify the printed environment, then check that batch, sequence 4096, 8 KV
-heads, head dimension 128, queries, attention computation stayed fixed. Read total bytes
-including scales and attention-output RMSE/cosine before applying the acceptance gate;
-the artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -144,13 +156,7 @@ under the same request set.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 19's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

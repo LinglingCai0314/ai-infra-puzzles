@@ -48,6 +48,28 @@ survive, but small enough that the largest scaled gradient remains finite. Dynam
 scaling searches that interval through observed overflow. It does not guarantee that
 every tiny gradient is preserved or that the forward pass is stable.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart TD
+  A["Non-finite loss or bad update"] --> B{"first bad tensor?"}
+  B -->|"forward activation"| C["Change forward dtype,<br/>normalization, or input range"]
+  B -->|"scaled gradient is Inf"| D["Lower scale and skip step"]
+  B -->|"tiny gradient became zero"| E["Raise scale or use wider dtype"]
+  B -->|"after optimizer"| F["Inspect unscale, clipping,<br/>optimizer state, and LR"]
+  C --> R["Replay the same batch"]
+  D --> R
+  E --> R
+  F --> R
+```
+
+### Walk it step by step
+
+1. **Locate the first bad stage.** Check forward activations, the scaled loss, scaled gradients, unscaled gradients, and parameters in that order.
+2. **Classify the symptom.** Inf indicates overflow; excessive zeros can indicate underflow even though every value is finite.
+3. **Apply the matching intervention.** Lower the scale for scaled-gradient overflow, raise it for underflow, or change the forward dtype for activation overflow.
+4. **Replay the same batch.** A diagnosis is useful only when the intervention removes the original first failure without creating a new one.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Sweep synthetic gradient magnitudes and loss scales in FP16 on CUDA, counting finite, infinite, and zero gradient values.
@@ -118,16 +140,6 @@ expensive, so production diagnosis usually places targeted hooks at loss, select
 activations, scaled gradients, unscaled gradients, and parameters, then narrows the
 search.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map FP16 casting of four gradient magnitudes with
-scale 1 and the same magnitudes multiplied by scales 256 and 65536 back to the
-derivation. Verify the printed environment, then check that tensor size, dtype, GPU,
-values within each magnitude group stayed fixed. Read zero fraction, finite fraction,
-Inf fraction, plus a separate forward-overflow probe before applying the acceptance
-gate; the artifact-writing cell retains the complete structured result from the recorded
-run.
-
 ## Reproduce
 
 From the repository root:
@@ -150,13 +162,7 @@ raising it helps the underflow case, and neither repairs the injected forward In
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 05's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

@@ -51,6 +51,27 @@ state remain FP32. BF16 does not usually need scaling for range in the way FP16 
 but exercising the full scaler API is still useful because the lesson is about the
 control loop and its evidence, not a single recommended dtype recipe.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart TD
+  A["FP32 parameters"] --> B["autocast forward + loss"]
+  B --> C["scale(loss).backward()"]
+  C --> D["unscale gradients"]
+  D --> Q{"all gradients finite?"}
+  Q -->|"yes"| E["optimizer.step()"]
+  Q -->|"no"| F["skip parameter update"]
+  E --> U["scaler.update()"]
+  F --> U
+```
+
+### Walk it step by step
+
+1. **Enter autocast for forward.** Eligible operators may use a lower compute dtype while master parameters stay FP32.
+2. **Scale before backward.** Backward sees S times the loss, moving small gradients into a representable range.
+3. **Unscale and inspect.** Gradient clipping and finiteness checks must use unscaled gradients.
+4. **Step conditionally.** The optimizer updates only when gradients are finite; then the scale policy is updated.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Train a small CUDA MLP with BF16 autocast and GradScaler while recording loss, parameter dtype, output dtype, gradient finiteness, and scale history.
@@ -125,16 +146,6 @@ from the forward dtype. A finite loss can coexist with zeroed small gradients, a
 skipped optimizer step can be invisible unless the scale and parameter update are
 inspected.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map FP32 parameters and optimizer state outside
-autocast and BF16 autocast forward wrapped in a complete scale/backward/step/update loop
-back to the derivation. Verify the printed environment, then check that same MLP, batch,
-targets, optimizer, seed, and six training steps stayed fixed. Read loss history, output
-dtype, parameter dtype, gradient finiteness, scaler value before applying the acceptance
-gate; the artifact-writing cell retains the complete structured result from the recorded
-run.
-
 ## Reproduce
 
 From the repository root:
@@ -157,13 +168,7 @@ and batch order so numerical and throughput decisions are not confounded.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 03's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

@@ -48,6 +48,24 @@ active request, and many activations are temporary. That makes concurrency a
 multiplication on the cache term, not on the model weights. The ledger must keep bytes,
 lifecycle, and ownership together.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  W["Weights<br/>persistent"] --> K["Layer kernel"]
+  A["Activations<br/>short-lived"] --> K
+  C["KV cache<br/>grows with context"] <--> K
+  K --> O["Output activations"]
+  W -. "storage dtype may differ<br/>from compute dtype" .-> K
+```
+
+### Walk it step by step
+
+1. **Separate persistent from temporary state.** Weights persist for the model lifetime; activations and workspace live for an operator or layer.
+2. **Account for context state.** KV cache grows with layers, batch, sequence length, heads, and head dimension.
+3. **Name storage and compute dtypes.** A tensor stored in INT4 may be dequantized into FP16/BF16 before or inside the kernel.
+4. **Optimize the dominant term.** Choose weight, activation, or KV quantization only after the workload-specific memory ledger identifies the bottleneck.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Build a memory ledger and allocate representative BF16 and INT8 KV tensors on CUDA to validate element-count arithmetic.
@@ -116,16 +134,6 @@ cache by layers and by both K and V. Another is treating free memory reported be
 model load as deployable capacity. Allocator reserve, CUDA graphs, kernels, and safety
 margin must be added before setting concurrency.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map BF16 KV-cache projection and a real BF16 K/V
-allocation and INT8 cache projection for the same model geometry back to the derivation.
-Verify the printed environment, then check that batch 1, 32 layers, 8 KV heads, head
-dimension 128, identical context lengths stayed fixed. Read projected cache GiB by
-context and byte count of an allocated representative tensor pair before applying the
-acceptance gate; the artifact-writing cell retains the complete structured result from
-the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -147,13 +155,7 @@ server and compare predicted versus observed cache capacity at 2K, 8K, and 32K c
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 07's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

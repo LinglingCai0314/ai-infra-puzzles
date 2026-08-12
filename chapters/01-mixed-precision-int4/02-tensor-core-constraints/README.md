@@ -54,6 +54,26 @@ GEMV-like or very small-M work. A kernel that is excellent for one phase can lea
 Tensor Cores under-filled in another. The useful unit of reasoning is consequently a
 shape family plus an operator trace, not the model's advertised precision.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  A["A: M × K"] --> G["Requested GEMM"]
+  B["B: K × N"] --> G
+  G --> Q{"dtype, layout, and<br/>shape fit the fast path?"}
+  Q -->|"yes"| T["Efficient tiled kernel"]
+  Q -->|"tail or fallback"| F["Lower-utilization path"]
+  T --> E["Timing + native trace"]
+  F --> E
+```
+
+### Walk it step by step
+
+1. **Write the exact GEMM.** Record M, N, K, dtype, layout, and strides; a model-level precision label is not enough.
+2. **Estimate the useful work.** Use 2MKN to see how little the awkward shape changes the mathematical workload.
+3. **Check dispatch constraints.** Ask whether alignment, tile boundaries, and the Decode or Prefill shape family fit an efficient kernel.
+4. **Separate observations.** Timing establishes application behavior; a native trace is required to name the instruction path.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Time FP32 and BF16 matrix multiplications with aligned and deliberately awkward dimensions on the same GPU.
@@ -127,15 +147,6 @@ Padding is also not automatically a fix: it may improve tile utilization while a
 FLOPs and temporary storage. Accept padding only after measuring the complete padded
 operator and its downstream layout costs.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map FP32 GEMM for the exact aligned and awkward
-shapes and BF16 GEMM for the same tensors and timing protocol back to the derivation.
-Verify the printed environment, then check that GPU, M and K, random distribution,
-warm-up, repetitions, CUDA-event timing stayed fixed. Read median and p90 latency for
-each dtype/shape pair before applying the acceptance gate; the artifact-writing cell
-retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -159,13 +170,7 @@ dtype label alone.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 02's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

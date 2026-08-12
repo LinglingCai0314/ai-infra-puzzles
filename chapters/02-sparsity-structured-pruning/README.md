@@ -18,6 +18,36 @@ material. The source HTML is not copied into this repository. Numerical models,
 compatibility probes, native backends, and performance runs carry different evidence
 labels so a package check or zero-rate calculation cannot be mistaken for acceleration.
 
+## Delivery loop at a glance
+
+```mermaid
+flowchart LR
+  A["Define the delivery target"] --> B["Choose a pruning granularity"]
+  B --> C["Prune with dependency constraints"]
+  C --> D["Recover quality"]
+  D --> E["Export a supported representation"]
+  E --> F["Prove runtime and product value"]
+  F -->|"gate fails"| C
+  F -->|"gate passes"| G["Release with rollback evidence"]
+```
+
+## How to read a lesson
+
+1. Make the prediction before opening the retained result.
+2. Map the diagram and derivation to the baseline and candidate in `lab.ipynb`.
+3. Verify the environment and frozen variables before comparing metrics.
+4. Reconcile notebook output with the JSON artifact, then apply the acceptance gate.
+
+## Evidence labels
+
+| Label | What it establishes |
+|---|---|
+| `pytorch-gpu` | CUDA execution through PyTorch, without inferring an unnamed native sparse kernel |
+| `numerical-model` | A controlled mechanism, not a full paper or production reproduction |
+| `compatibility-probe` | Package or API availability and its exact success/failure boundary |
+| `native-backend` | Execution through the named backend for the recorded model and workload |
+| `capacity-model` | Transparent planning arithmetic anchored by measured CUDA facts |
+
 ## Phase I — Objectives and pruning mechanics
 
 | Lesson | Core decision | Lab |

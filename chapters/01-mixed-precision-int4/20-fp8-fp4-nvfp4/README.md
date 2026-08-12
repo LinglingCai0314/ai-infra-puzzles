@@ -114,16 +114,6 @@ only. Comparing raw FP8 latency against a different shape or excluding scale com
 can misstate speed. Treating NVFP4 as signed uniform INT4 loses its block-scale
 semantics entirely.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map higher-precision reference matrix multiplication
-for error comparison and PyTorch scaled FP8 E4M3 GEMM on RTX 5090 back to the
-derivation. Verify the printed environment, then check that 1024-class matrix shape,
-scaling procedure, warm-up, fifteen timing samples stayed fixed. Read API success,
-RMSE/cosine, median/p90, library availability, NVFP4 status before applying the
-acceptance gate; the artifact-writing cell retains the complete structured result from
-the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -146,13 +136,7 @@ hardware, library, API, operator, and tested status.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 20's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

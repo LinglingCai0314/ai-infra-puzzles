@@ -11,6 +11,7 @@ from urllib.parse import unquote
 
 from build_chapter01_lessons import CHAPTER, LESSONS
 from chapter01_delivery_content import DELIVERY, result_table
+from tutorial_guides import CHAPTER_01_GUIDES
 
 
 ROOT = CHAPTER.parents[1]
@@ -70,7 +71,7 @@ def main() -> int:
         notes[directory.name] = note
         check_relative_links(note_path, note, issues)
 
-        if words(note) < 950:
+        if words(note) < 850:
             issues.append(f"{directory.name}: README has only {words(note)} words")
         if sum(line.startswith("|---") for line in note.splitlines()) < 3:
             issues.append(f"{directory.name}: README needs three explanatory tables")
@@ -79,6 +80,10 @@ def main() -> int:
         for heading in REQUIRED_HEADINGS:
             if heading not in note:
                 issues.append(f"{directory.name}: missing heading {heading}")
+        if no in CHAPTER_01_GUIDES:
+            for signal in ("```mermaid", "### Walk it step by step"):
+                if signal not in note:
+                    issues.append(f"{directory.name}: missing curated visual guide signal {signal}")
         if result_table(no, artifact) not in note:
             issues.append(f"{directory.name}: README result table is not synchronized")
         delivery = DELIVERY[no]
@@ -98,6 +103,10 @@ def main() -> int:
             issues.append(f"{directory.name}: notebook theory has only {words(markdown_text)} words")
         if result_table(no, artifact) not in markdown_text:
             issues.append(f"{directory.name}: notebook result table is not synchronized")
+        if no in CHAPTER_01_GUIDES:
+            for signal in ("```mermaid", "### Walk it step by step"):
+                if signal not in markdown_text:
+                    issues.append(f"{directory.name}: notebook missing curated visual guide signal {signal}")
         if len(code_cells) != 3:
             issues.append(f"{directory.name}: expected three readable code stages")
         if any(cell.get("execution_count") is None for cell in code_cells):

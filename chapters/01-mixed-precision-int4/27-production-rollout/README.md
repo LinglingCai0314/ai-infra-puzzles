@@ -45,6 +45,29 @@ Rollback must restore a loadable, compatible baseline and be rehearsed before pr
 A local synthetic decision can validate the gate machinery while remaining explicit that
 no container, traffic, or service health signal was exercised.
 
+### Mechanism at a glance
+
+```mermaid
+stateDiagram-v2
+  [*] --> Offline
+  Offline --> LoadSmoke: quality and performance pass
+  Offline --> Rollback: gate fails
+  LoadSmoke --> Shadow: load and compatibility pass
+  LoadSmoke --> Rollback: gate fails
+  Shadow --> Canary: shadow checks pass
+  Shadow --> Rollback: drift or error
+  Canary --> Rollout: SLO and quality pass
+  Canary --> Rollback: threshold breached
+  Rollout --> Rollback: production regression
+```
+
+### Walk it step by step
+
+1. **Bind immutable artifacts.** Model, tokenizer, recipe, runtime, container, and GPU compatibility form one release unit.
+2. **Pass offline gates.** Quality, numerical, load, and performance checks run before any traffic exposure.
+3. **Increase exposure in stages.** Shadow and canary stages consume predeclared health and quality thresholds.
+4. **Make rollback executable.** Every stage points to a load-tested baseline and has an automatic or operator-triggered stop condition.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Evaluate a synthetic candidate against frozen gates and emit a release decision plus rollback manifest from measured CUDA output error and timing.
@@ -111,15 +134,6 @@ rollback identifier without a verified artifact is not a rollback plan. Producti
 promotion also needs sustained load, error rates, GPU health, output monitoring, and a
 human/operator decision path.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map versioned BF16 matrix path `bf16-v1` and
-reference INT4-dequantized path `reference-int4-v1` back to the derivation. Verify the
-printed environment, then check that same tensors, fifteen timing samples, fixed
-RMSE/latency thresholds stayed fixed. Read baseline/candidate median and p90, output
-error, individual gate booleans, release decision before applying the acceptance gate;
-the artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -142,13 +156,7 @@ expanding traffic.
 
 ## Evidence boundary
 
-The calculation uses live GPU information and/or a CUDA probe, but it remains a planning
-model until a named full engine, quality suite, and service workload execute.
-
-The checked-in observation belongs to Lesson 27's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`capacity-model`](../README.md#evidence-labels).
 
 ## References
 

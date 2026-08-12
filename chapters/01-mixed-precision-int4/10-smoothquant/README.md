@@ -46,6 +46,27 @@ outliers reduces activation step size while enlarged weight channels increase we
 step size. The objective is the error of the composed quantized linear output, not
 activation amax in isolation.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  X["Activation X<br/>channel outliers"] --> XS["X' = X / s<br/>smaller activation range"]
+  W["Weight W"] --> WS["W' = W · s<br/>absorbs migrated range"]
+  XS --> M["Quantized linear path"]
+  WS --> M
+  M --> Y["Compare with Y = XW^T"]
+  A["alpha sweep"] --> S["choose s per channel"]
+  S --> XS
+  S --> WS
+```
+
+### Walk it step by step
+
+1. **Measure channel ranges.** Collect activation and weight maxima on calibration data for matching input channels.
+2. **Choose reciprocal scales.** Use alpha to decide how much range moves from each activation channel into its weight channel.
+3. **Verify floating equivalence.** Before rounding, confirm that (X/s)(W·s)^T still equals XW^T.
+4. **Quantize and validate.** Select alpha by held-out output or task quality, then verify a named W8A8 runtime path.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Apply SmoothQuant-style channel scaling to an outlier-heavy linear layer, verify floating-point equivalence, and compare W8A8 reconstruction error over alpha values.
@@ -115,16 +136,6 @@ test. Reducing activation range without quantizing weights can give a false vict
 Another failure is folding scales into weights but forgetting the corresponding
 activation transform or its runtime/fusion cost.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map W8A8 quantization without activation-to-weight
-migration (`alpha=0`) and reciprocal channel scaling for alpha 0.25, 0.5, 0.75, and 1.0
-back to the derivation. Verify the printed environment, then check that same
-outlier-heavy X and W, per-tensor INT8 reference quantizer, held shapes stayed fixed.
-Read floating-point equivalence max error and quantized output RMSE/cosine by alpha
-before applying the acceptance gate; the artifact-writing cell retains the complete
-structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -147,13 +158,7 @@ the scale transforms are folded or fused as intended.
 
 ## Evidence boundary
 
-The CUDA numerical experiment isolates an algorithmic mechanism. It is not the paper's
-complete implementation and does not establish a production kernel speedup.
-
-The checked-in observation belongs to Lesson 10's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`numerical-model`](../README.md#evidence-labels).
 
 ## References
 

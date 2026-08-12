@@ -12,6 +12,7 @@ from typing import Any
 
 from chapter02_content import COMMON_REFS, LESSONS
 from chapter02_experiments import ENV_CODE, EXPERIMENTS
+from tutorial_guides import CHAPTER_02_GUIDES, CHAPTER_02_MAP, render_guide
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -119,6 +120,7 @@ def readme(spec: dict[str, Any], artifact: dict[str, Any] | None) -> str:
     checks = "\n".join(f"{i}. {item}" for i, item in enumerate(spec["checks"], 1))
     anchors = "\n".join(f"| {i} | {item} |" for i, item in enumerate(spec["anchors"], 1))
     analysis = artifact["analysis"] if artifact else "The interpretation will be generated from the structured result after a complete CUDA run."
+    guide = render_guide(CHAPTER_02_GUIDES.get(spec["no"]))
     optional_install = ""
     if spec["no"] in OPTIONAL_INSTALLS:
         optional_install = f'''\nThis lesson's optional/native backend path requires:\n\n```bash\n{OPTIONAL_INSTALLS[spec["no"]]}\n```\n'''
@@ -132,19 +134,9 @@ def readme(spec: dict[str, Any], artifact: dict[str, Any] | None) -> str:
 
 {spec['hook']}
 
-For **{spec['title']}**, the engineering question is not whether a definition can be
-repeated; it is whether the following claim survives a controlled GPU test:
-*{spec['puzzle']}* The lab therefore changes the mechanism described below, retains its
-measured state, and names the evidence that would still be needed for deployment.
-
 ## Predict before reading the result
 
 {checks}
-
-Before opening Lesson {spec['no']:02d}'s retained output, answer the first prompt—
-*{spec['checks'][0]}*—and write one observation that would falsify the answer. If the
-result is already visible, hide it and make the commitment first; otherwise this becomes
-post-hoc explanation rather than a pruning experiment.
 
 ## 1. Start from concrete tensors and state
 
@@ -156,19 +148,11 @@ post-hoc explanation rather than a pruning experiment.
 |---:|---|
 {anchors}
 
-Lesson {spec['no']:02d} tracks three layers through {spec['title']}: *value state* says
-which entries are zero, *shape state* says which axes physically changed, and *execution
-state* says which operator actually ran. The anchors above identify where this lesson's
-claim lives, so a zero count cannot silently turn into a latency claim.
-
 ## 2. Derive the mechanism
 
 {spec['mechanism']}
 
-The inspectable invariant for **{spec['title']}** is tested by: {spec['experiment']} Its
-purpose is to prevent the specific category error behind this puzzle. An algorithmic
-change, a stored representation, and a runtime observation remain separate until the
-candidate and measurements below connect them.
+{guide}
 
 ## 3. Translate the theory into an experiment
 
@@ -182,20 +166,9 @@ candidate and measurements below connect them.
 | Measurements | {spec['metrics']} |
 | Evidence label | `{spec['evidence_label']}` |
 
-This Lesson {spec['no']:02d} comparison is deliberately small enough to rerun on a
-reader's GPU. Its control is **{spec['controlled']}**. That frozen condition preserves
-the dependency or runtime boundary at issue; the small scale limits transfer to larger
-models but does not permit the baseline and candidate to answer different questions.
-
 ### Code walk-through
 
 {spec['code_walk']}
-
-For **{spec['title']}**, the environment cell asserts CUDA and fixes a lesson-specific
-seed. The experiment cell implements {spec['candidate']} and records {spec['metrics']}.
-The artifact cell serializes those same fields. Only optional-backend import or API
-failures become compatibility evidence; an error in the core comparison still fails the
-notebook.
 
 ## 4. Read the checked-in RTX 5090 result
 
@@ -207,11 +180,6 @@ notebook.
 
 {analysis}
 
-Lesson {spec['no']:02d}'s full [`rtx5090-result.json`](artifacts/rtx5090-result.json)
-retains the arrays or diagnostic fields behind the compact selection above. For this
-lesson, the interpretation is bounded by **{spec['evidence_label']}** evidence; the
-printed notebook payload and the JSON were produced by the same execution.
-
 ## 5. Solve the puzzle and make a decision
 
 > {spec['conclusion']}
@@ -220,25 +188,9 @@ printed notebook payload and the JSON were produced by the same execution.
 
 {spec['gate']}
 
-The gate for **{spec['title']}** is stricter than “the code ran” because it binds this
-lesson's tensor or model identity, quality tolerance, workload, runtime path, and
-rollback evidence. A missing optional package can settle a compatibility question, but
-it cannot satisfy the native-performance decision stated above.
-
 ### How this conclusion can fail
 
 {spec['failure']}
-
-## 6. Follow the theory inside the notebook
-
-In Lesson {spec['no']:02d}'s [`lab.ipynb`](lab.ipynb), first identify **{spec['baseline']}**
-and **{spec['candidate']}** without running them. Next inspect the dimensions or
-lifecycle state that implements the derivation. After **Run All**, verify the RTX 5090
-environment and the frozen fields before reconciling the result table with the artifact.
-
-The reader loop for **{spec['title']}** is **predict → execute → inspect → explain →
-decide**. Transferring its final number to another architecture, workload shape, or
-backend requires a new run because those variables sit outside this lesson's evidence.
 
 ## Reproduce
 
@@ -253,29 +205,13 @@ jupyter lab chapters/02-sparsity-structured-pruning/{spec['no']:02d}-{spec['slug
 
 {optional_install}
 
-To reproduce **{spec['title']}**, use a PyTorch build compiled for the target GPU and
-select `Run All`. Compare the measurements in the frozen protocol with the checked-in
-artifact. If this lesson touches an optional toolchain, install that named backend
-before claiming native execution; otherwise only the compatibility fields are valid.
-
 ## Extend the experiment
 
 {spec['next_step']}
 
-For Lesson {spec['no']:02d}, the proposed extension is a new evidence layer rather than
-a replacement for the checked-in control. Add one of its requested dimensions at a time
-and retain this mechanism run, so a quality, export, operator, or service-level reversal
-can be localized.
-
 ## Evidence boundary
 
-{EVIDENCE[spec['evidence_label']]}
-
-The checked-in **{spec['title']}** observation belongs to Lesson {spec['no']:02d}'s RTX
-5090 environment, shapes, seed, and protocol. It does not establish the unmeasured task
-quality or platform properties named in the failure analysis. This independently written
-tutorial uses the study topic as a question, without redistributing source HTML, model
-weights, private paths, or infrastructure.
+**Evidence label:** [`{spec['evidence_label']}`](../README.md#evidence-labels).
 
 ## References
 
@@ -308,6 +244,7 @@ def notebook(spec: dict[str, Any], artifact: dict[str, Any] | None, old_nb: dict
     anchors = "\n".join(f"- {item}" for item in spec["anchors"])
     protocol = f"| Role | Frozen value |\n|---|---|\n| Baseline | {spec['baseline']} |\n| Candidate | {spec['candidate']} |\n| Held constant | {spec['controlled']} |\n| Measurements | {spec['metrics']} |\n| Evidence | `{spec['evidence_label']}` |"
     analysis = artifact["analysis"] if artifact else "Run the code cells to create the first structured result."
+    guide = render_guide(CHAPTER_02_GUIDES.get(no))
     artifact_code = f'''artifact = Path("artifacts/rtx5090-result.json")
 artifact.parent.mkdir(parents=True, exist_ok=True)
 payload = {{
@@ -326,7 +263,7 @@ print(json.dumps(payload, indent=2, ensure_ascii=False))'''
         markdown(f"c02-l{no:02d}-why", f"## Why this matters\n\n{spec['hook']}"),
         markdown(f"c02-l{no:02d}-predict", f"## 0. Predict before running\n\n{checks}\n\nFor every answer, name the observation that would prove it wrong."),
         markdown(f"c02-l{no:02d}-objects", f"## 1. Name the concrete objects\n\n{spec['objects']}\n\n{anchors}"),
-        markdown(f"c02-l{no:02d}-derive", f"## 2. Derive the mechanism\n\n{spec['mechanism']}\n\nKeep value sparsity, physical shape, representation, and runtime evidence separate."),
+        markdown(f"c02-l{no:02d}-derive", f"## 2. Derive the mechanism\n\n{spec['mechanism']}\n\n{guide}"),
         markdown(f"c02-l{no:02d}-env", "## 3. Verify the execution environment\n\nInspect the next cell before running it: it asserts CUDA, fixes the seed, defines transparent timing/numerical helpers, and prints the GPU/PyTorch/CUDA record needed to interpret every output."),
         code(f"c02-l{no:02d}-env-code", f"LESSON_NO = {no}\nLESSON_TITLE = {spec['title']!r}\n\n{ENV_CODE}", old_code.get(f"c02-l{no:02d}-env-code")),
         markdown(f"c02-l{no:02d}-protocol", f"## 4. Freeze the comparison\n\n{protocol}\n\n**Experiment:** {spec['experiment']}"),
@@ -356,6 +293,7 @@ def chapter_readme() -> str:
             directory = f"{spec['no']:02d}-{spec['slug']}"
             rows.append(f"| {spec['no']:02d} | [{spec['title']}]({directory}/README.md) | [notebook]({directory}/lab.ipynb) |")
         blocks.append(f"## Phase {numeral} — {title}\n\n" + "\n".join(rows))
+    phase_blocks = "\n\n".join(blocks)
     return wrap(f'''# Chapter 02 — Sparsity and Structured Pruning
 
 This chapter turns model sparsity from a zero-count exercise into a chain of testable
@@ -376,7 +314,30 @@ study material. The source HTML is not copied into this repository. Numerical mo
 compatibility probes, native backends, and performance runs carry different evidence
 labels so a package check or zero-rate calculation cannot be mistaken for acceleration.
 
-{'\n\n'.join(blocks)}
+## Delivery loop at a glance
+
+```mermaid
+{CHAPTER_02_MAP}
+```
+
+## How to read a lesson
+
+1. Make the prediction before opening the retained result.
+2. Map the diagram and derivation to the baseline and candidate in `lab.ipynb`.
+3. Verify the environment and frozen variables before comparing metrics.
+4. Reconcile notebook output with the JSON artifact, then apply the acceptance gate.
+
+## Evidence labels
+
+| Label | What it establishes |
+|---|---|
+| `pytorch-gpu` | CUDA execution through PyTorch, without inferring an unnamed native sparse kernel |
+| `numerical-model` | A controlled mechanism, not a full paper or production reproduction |
+| `compatibility-probe` | Package or API availability and its exact success/failure boundary |
+| `native-backend` | Execution through the named backend for the recorded model and workload |
+| `capacity-model` | Transparent planning arithmetic anchored by measured CUDA facts |
+
+{phase_blocks}
 
 ## Reproduce and validate
 

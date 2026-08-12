@@ -46,6 +46,24 @@ weight. Nominal INT4 therefore becomes 5.0 effective bits at group size 16, 4.25
 and 4.125 at 128 before padding or zero-point metadata. Smaller groups can isolate
 outliers but may be incompatible with the fastest backend kernels.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  X["Floating tensor x"] --> S["Choose scale s<br/>and zero point z"]
+  S --> Q["q = clamp(round(x / s) + z)"]
+  Q --> P["Pack integer codes + metadata"]
+  P --> D["x_hat = s(q - z)"]
+  D --> E["Error and storage ledger"]
+```
+
+### Walk it step by step
+
+1. **Choose a quantization range.** Derive scale and, for asymmetric quantization, zero point from the calibration range.
+2. **Map to integer codes.** Round and clamp each value into the available codebook.
+3. **Reconstruct for comparison.** Dequantize with the same metadata and measure error against the original tensor.
+4. **Change one granularity at a time.** Sweep group size while retaining metadata bytes so accuracy and effective storage remain comparable.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Quantize an outlier-containing matrix with INT4 group sizes 16, 64, and 128 and compare error plus metadata overhead.
@@ -115,16 +133,6 @@ effective bits ignores alignment, padding, and scale loads. Finally, a group siz
 good numerical behavior can lose in production if the backend does not provide a fused
 kernel for that layout.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map one fixed outlier-containing 1024×1024 weight
-matrix and symmetric INT4 with group sizes 16, 64, and 128 back to the derivation.
-Verify the printed environment, then check that same codes, scale dtype assumption,
-grouping axis, seed, and error reference stayed fixed. Read RMSE/cosine error,
-saturation fraction, scale count, effective bits per weight before applying the
-acceptance gate; the artifact-writing cell retains the complete structured result from
-the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -147,13 +155,7 @@ all represented.
 
 ## Evidence boundary
 
-The CUDA numerical experiment isolates an algorithmic mechanism. It is not the paper's
-complete implementation and does not establish a production kernel speedup.
-
-The checked-in observation belongs to Lesson 08's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`numerical-model`](../README.md#evidence-labels).
 
 ## References
 

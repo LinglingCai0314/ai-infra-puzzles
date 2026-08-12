@@ -49,6 +49,27 @@ score to identify sensitive columns and preserves a fixed fraction in higher pre
 That smaller construction isolates the central idea—optimize layer behavior, not the
 visual closeness of W—without claiming production GPTQ equivalence.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  A["Calibration activations"] --> H["Approximate curvature"]
+  W["FP weight block"] --> Q["Quantize current columns"]
+  H --> Q
+  Q --> R["Compute reconstruction residual"]
+  R --> C["Compensate unquantized columns"]
+  C --> N{"more columns?"}
+  N -->|"yes"| Q
+  N -->|"no"| O["Validate layer output"]
+```
+
+### Walk it step by step
+
+1. **Freeze one layer and its calibration inputs.** GPTQ reconstructs layer outputs under the distribution represented by those inputs.
+2. **Estimate input curvature.** The activation Gram or Hessian approximation weights errors in directions that matter for the layer output.
+3. **Quantize a block of columns.** Choose codes, compute the residual introduced by rounding, and keep the quantized columns fixed.
+4. **Compensate the remaining columns.** Propagate the residual through the inverse-curvature approximation before moving to the next block.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Compare naive INT4 weight quantization with a GPTQ-inspired sensitivity fallback that preserves columns with large input-weighted error.
@@ -117,16 +138,6 @@ columns also changes average bit width, so a fair comparison must report the pre
 budget. A low layer RMSE can still fail after nonlinearities or across a full model, and
 a good checkpoint can still be slow without a compatible packed kernel.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map naive group-wise INT4 applied uniformly to the
-layer weights and INT4 plus a 12.5% input-sensitive column fallback back to the
-derivation. Verify the printed environment, then check that same layer, calibration
-inputs, held-out inputs, quantizer, and fallback budget stayed fixed. Read held-out
-output RMSE, MAE, cosine, max error, preserved fraction before applying the acceptance
-gate; the artifact-writing cell retains the complete structured result from the recorded
-run.
-
 ## Reproduce
 
 From the repository root:
@@ -149,13 +160,7 @@ serving backend and keep quantization quality separate from operator throughput.
 
 ## Evidence boundary
 
-The CUDA numerical experiment isolates an algorithmic mechanism. It is not the paper's
-complete implementation and does not establish a production kernel speedup.
-
-The checked-in observation belongs to Lesson 11's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`numerical-model`](../README.md#evidence-labels).
 
 ## References
 

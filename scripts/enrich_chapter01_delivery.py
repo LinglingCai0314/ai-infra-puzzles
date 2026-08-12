@@ -11,6 +11,7 @@ from typing import Any
 
 from build_chapter01_lessons import CHAPTER, LESSONS, THEORY
 from chapter01_delivery_content import DELIVERY, environment_line, result_table
+from tutorial_guides import CHAPTER_01_GUIDES, render_guide
 
 
 EVIDENCE_EXPLANATIONS = {
@@ -100,8 +101,8 @@ def readme_for(lesson: dict[str, Any], artifact: dict[str, Any]) -> str:
     references = "\n".join(
         f"- [{name}]({url})" for name, url in unique_references(lesson, delivery)
     )
-    evidence = EVIDENCE_EXPLANATIONS[lesson["label"]]
     results = result_table(no, artifact)
+    guide = render_guide(CHAPTER_01_GUIDES.get(no))
     return format_markdown(f"""# Lesson {no:02d} — {lesson['title']}
 
 > **Puzzle:** {lesson['puzzle']}
@@ -131,6 +132,8 @@ def readme_for(lesson: dict[str, Any], artifact: dict[str, Any]) -> str:
 {theory['mechanism']}
 
 {delivery['derivation']}
+
+{guide}
 
 ## 3. Translate the theory into an experiment
 
@@ -175,14 +178,6 @@ need every repeated sample or a field not selected for the tutorial table.
 
 {delivery['failure']}
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map {delivery['baseline']} and
-{delivery['candidate']} back to the derivation. Verify the printed environment,
-then check that {delivery['controlled']} stayed fixed. Read
-{delivery['metrics']} before applying the acceptance gate; the artifact-writing
-cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -202,13 +197,7 @@ Use **Run All** and compare the regenerated result with the checked-in artifact.
 
 ## Evidence boundary
 
-{evidence}
-
-The checked-in observation belongs to Lesson {no:02d}'s recorded RTX 5090
-environment and controlled variables. It can explain this mechanism without
-establishing unmeasured full-model quality or online-service performance. The
-tutorial is independently written and does not redistribute course source
-files, model weights, or private infrastructure.
+**Evidence label:** [`{lesson['label']}`](../README.md#evidence-labels).
 
 ## References
 
@@ -235,6 +224,7 @@ def notebook_for(
         f"| Measurements | {delivery['metrics']} |\n"
         f"| Evidence | `{lesson['label']}` |"
     )
+    guide = render_guide(CHAPTER_01_GUIDES.get(no))
     cells = [
         markdown(
             f"l{no:02d}-title-v2",
@@ -255,7 +245,8 @@ def notebook_for(
         ),
         markdown(
             f"l{no:02d}-derive-v2",
-            f"## 2. Derive the mechanism\n\n{theory['mechanism']}\n\n{delivery['derivation']}",
+            f"## 2. Derive the mechanism\n\n{theory['mechanism']}\n\n"
+            f"{delivery['derivation']}\n\n{guide}",
         ),
         markdown(
             f"l{no:02d}-env-v2",

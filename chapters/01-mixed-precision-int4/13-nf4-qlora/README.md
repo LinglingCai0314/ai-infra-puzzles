@@ -49,6 +49,26 @@ are `P·4/8`, but adapter weights, adapter gradients, two Adam moments, activati
 workspaces have their own dtype and multiplicity. Sequence length can dominate because
 saved activations scale with tokens even though base storage does not.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  N["NF4 base weights<br/>frozen"] --> D["blockwise dequantize"]
+  D --> B["base linear output"]
+  X["input activation"] --> B
+  X --> L["trainable LoRA path"]
+  B --> Y["combined output"]
+  L --> Y
+  Y --> G["gradients only for adapters"]
+```
+
+### Walk it step by step
+
+1. **Freeze the quantized base.** The NF4 base weights are storage for forward computation, not trainable optimizer parameters.
+2. **Dequantize for compute.** Blocks are reconstructed into the configured compute dtype as the layer executes.
+3. **Train only adapters.** LoRA matrices, their gradients, and their optimizer states form the main trainable parameter budget.
+4. **Keep a complete memory ledger.** Add quantized weights, scales, adapters, gradients, optimizer state, activations, and temporary workspace.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Build a 7B-class memory ledger and run a CUDA low-rank adapter forward/backward over a frozen fake-quantized base matrix.
@@ -118,16 +138,6 @@ Counting optimizer state for frozen weights overestimates memory, while omitting
 moments underestimates it. A memory fit based on parameters alone can OOM during
 backward when saved activations and temporary buffers peak.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map 7B BF16 base-weight arithmetic plus a frozen CUDA
-reference layer and ideal INT4 base ledger with trainable low-rank adapters back to the
-derivation. Verify the printed environment, then check that parameter count, adapter
-rank assumption, optimizer-state rule, toy layer shape stayed fixed. Read base GiB,
-LoRA/Adam MiB, gradient finiteness, frozen-base flag, toy loss before applying the
-acceptance gate; the artifact-writing cell retains the complete structured result from
-the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -150,13 +160,7 @@ allocator snapshots and activation liveness.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 13's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

@@ -118,15 +118,6 @@ Reporting only mean error can hide rare catastrophic clipping, while reporting o
 error can let one outlier consume the entire code range. Coverage metadata—domain,
 length, language, tool use, and frequency—is part of the quantization artifact.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map scales frozen from a narrow synthetic calibration
-distribution and balanced and explicitly outlier-aware calibration sets back to the
-derivation. Verify the printed environment, then check that INT8 formula, held-out mixed
-tensor, evaluation metrics, seed stayed fixed. Read frozen scale, held-out clipping
-fraction, RMSE, MAE, cosine, max error before applying the acceptance gate; the
-artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -149,13 +140,7 @@ stable across model revisions.
 
 ## Evidence boundary
 
-The CUDA numerical experiment isolates an algorithmic mechanism. It is not the paper's
-complete implementation and does not establish a production kernel speedup.
-
-The checked-in observation belongs to Lesson 09's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`numerical-model`](../README.md#evidence-labels).
 
 ## References
 

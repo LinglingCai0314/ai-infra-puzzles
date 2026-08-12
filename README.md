@@ -57,7 +57,8 @@ The lesson notes include the derivation, controlled experiment, selected
 measured values, interpretation, failure modes, and next experiment—not only a
 link to notebook output. The notebooks keep the theory next to the code so a
 reader can predict, run, inspect, and explain without switching documents at
-every step.
+every step. High-leverage mechanisms also include a dedicated Mermaid diagram
+and a four-step reasoning walkthrough.
 
 See the [full 30-lesson chapter map](chapters/01-mixed-precision-int4/README.md).
 
@@ -96,7 +97,9 @@ Every lesson distinguishes four different claims: values became zero, storage
 became smaller, tensor shapes changed, and the runtime became faster. The
 checked-in labs were executed on an RTX 5090 with PyTorch 2.12 and CUDA 13.0.
 Optional toolchains are reported as compatibility probes when unavailable;
-missing native execution is never presented as measured acceleration.
+missing native execution is never presented as measured acceleration. Each
+lesson now visualizes its pruning, dependency, export, or deployment path and
+then explains that path in four concrete steps.
 
 See the [complete 28-lesson map](chapters/02-sparsity-structured-pruning/README.md)
 or start with

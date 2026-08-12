@@ -119,15 +119,6 @@ omitting output length, and comparing throughput at unequal latency or quality.
 Quantization compatibility matrices also change across versions, so the exact release
 must be pinned.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map BF16 PyTorch matrix path for batches 1, 8, and 32
-and reference dequantized W4 matrix path at the same shapes back to the derivation.
-Verify the printed environment, then check that weight/input shapes, GPU, warm-up,
-repetitions; no server or scheduler stayed fixed. Read operator median/p90 by batch plus
-vLLM installation and service-benchmark status before applying the acceptance gate; the
-artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -150,13 +141,7 @@ latency, tokens/s, GPU memory, and rejected requests.
 
 ## Evidence boundary
 
-The named optional backend did not complete a native run in this environment. Package
-and failure evidence are retained; service or kernel performance is not inferred.
-
-The checked-in observation belongs to Lesson 18's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`compatibility-probe`](../README.md#evidence-labels).
 
 ## References
 

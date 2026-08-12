@@ -11,23 +11,11 @@ operator implementation supported by the target OpenVINO/oneDNN stack. NNCF or I
 Neural Compressor configuration is part of the executable artifact; a PyTorch zero rate
 alone is not.
 
-For **OpenVINO, NNCF, and Intel Runtime Sparsity**, the engineering question is not
-whether a definition can be repeated; it is whether the following claim survives a
-controlled GPU test: *Why can a generic sparse checkpoint miss the optimized CPU path?*
-The lab therefore changes the mechanism described below, retains its measured state, and
-names the evidence that would still be needed for deployment.
-
 ## Predict before reading the result
 
 1. Predict which package probes succeed in the recorded GPU environment.
 2. Explain why physically narrower shapes remain useful without a sparse CPU kernel.
 3. List the CPU-specific fields needed for a fair benchmark.
-
-Before opening Lesson 17's retained output, answer the first prompt— *Predict which
-package probes succeed in the recorded GPU environment.*—and write one observation that
-would falsify the answer. If the result is already visible, hide it and make the
-commitment first; otherwise this becomes post-hoc explanation rather than a pruning
-experiment.
 
 ## 1. Start from concrete tensors and state
 
@@ -43,11 +31,6 @@ asserting CPU speed from GPU evidence.
 | 2 | Filter removal and unstructured encoding expose different CPU opportunities. |
 | 3 | GPU control results cannot substitute for CPU runtime measurements. |
 
-Lesson 17 tracks three layers through OpenVINO, NNCF, and Intel Runtime Sparsity: *value
-state* says which entries are zero, *shape state* says which axes physically changed,
-and *execution state* says which operator actually ran. The anchors above identify where
-this lesson's claim lives, so a zero count cannot silently turn into a latency claim.
-
 ## 2. Derive the mechanism
 
 Unstructured zeros preserve dense tensor dimensions unless a sparse encoding and sparse
@@ -57,11 +40,24 @@ CPU SIMD utilization, threading, cache behavior, and quantization interact with 
 Therefore the correct handoff includes model format, pattern, runtime version, thread
 settings, and operator log.
 
-The inspectable invariant for **OpenVINO, NNCF, and Intel Runtime Sparsity** is tested
-by: Probe Intel compression/runtime packages and contrast value sparsity with physical
-width under a bounded evidence label. Its purpose is to prevent the specific category
-error behind this puzzle. An algorithmic change, a stored representation, and a runtime
-observation remain separate until the candidate and measurements below connect them.
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  M["dense framework model"] --> O["NNCF / INC optimization"]
+  C["calibration + accuracy criteria"] --> O
+  O --> I["OpenVINO IR or runtime artifact"]
+  I --> Q["representation and shape audit"]
+  Q --> B["target-CPU benchmark"]
+  B --> G{"quality, latency,<br/>size gates pass?"}
+```
+
+### Walk it step by step
+
+1. **Choose the CPU runtime first.** OpenVINO, NNCF, and Intel Neural Compressor support different models, sparsity patterns, and optimization workflows.
+2. **Optimize with representative data.** Calibration or accuracy-aware tuning must use the same preprocessing and task contract as the baseline.
+3. **Inspect the exported representation.** Verify IR or serialized size, shapes, precision, and whether the runtime preserved a useful sparse pattern.
+4. **Benchmark on the target CPU.** Pin threads, cores, batch, warm-up, and latency mode; a GPU-side zero pattern is not CPU performance evidence.
 
 ## 3. Translate the theory into an experiment
 
@@ -75,25 +71,12 @@ observation remain separate until the candidate and measurements below connect t
 | Measurements | package availability, logical sparsity, physical width, output drift, and native-run status |
 | Evidence label | `compatibility-probe` |
 
-This Lesson 17 comparison is deliberately small enough to rerun on a reader's GPU. Its
-control is **source tensor, zero budget, input, environment, package names, and decision
-gates**. That frozen condition preserves the dependency or runtime boundary at issue;
-the small scale limits transfer to larger models but does not permit the baseline and
-candidate to answer different questions.
-
 ### Code walk-through
 
 The experiment keeps its CUDA numerical control separate from the package matrix.
 Conditional imports record exact availability; the conclusion remains `not_run` for
 OpenVINO performance unless a native model conversion and CPU workload execute. This
 prevents a generic pruning result from being laundered into an Intel deployment claim.
-
-For **OpenVINO, NNCF, and Intel Runtime Sparsity**, the environment cell asserts CUDA
-and fixes a lesson-specific seed. The experiment cell implements physically narrower
-dense control and optional OpenVINO/NNCF native path and records package availability,
-logical sparsity, physical width, output drift, and native-run status. The artifact cell
-serializes those same fields. Only optional-backend import or API failures become
-compatibility evidence; an error in the core comparison still fails the notebook.
 
 ## 4. Read the checked-in RTX 5090 result
 
@@ -115,11 +98,6 @@ output; the physical control changed width to 256. OpenVINO/NNCF/Neural Compress
 availability was False/False/False. No CPU latency is reported because no native CPU
 path executed.
 
-Lesson 17's full [`rtx5090-result.json`](artifacts/rtx5090-result.json) retains the
-arrays or diagnostic fields behind the compact selection above. For this lesson, the
-interpretation is bounded by **compatibility-probe** evidence; the printed notebook
-payload and the JSON were produced by the same execution.
-
 ## 5. Solve the puzzle and make a decision
 
 > Intel sparsity is a runtime-specific graph and kernel decision; CUDA zeros provide only a numerical control.
@@ -129,31 +107,11 @@ payload and the JSON were produced by the same execution.
 Accept an Intel deployment only after conversion, graph inspection, CPU thread pinning,
 quality parity, and repeated target-CPU latency/throughput evidence.
 
-The gate for **OpenVINO, NNCF, and Intel Runtime Sparsity** is stricter than “the code
-ran” because it binds this lesson's tensor or model identity, quality tolerance,
-workload, runtime path, and rollback evidence. A missing optional package can settle a
-compatibility question, but it cannot satisfy the native-performance decision stated
-above.
-
 ### How this conclusion can fail
 
 Package presence is weaker than operator support, and a laptop CPU result may not
 transfer to the production SKU. A narrow channel count can hurt vector alignment, while
 unstructured compression can reduce disk size without runtime benefit.
-
-## 6. Follow the theory inside the notebook
-
-In Lesson 17's [`lab.ipynb`](lab.ipynb), first identify **same-shape unstructured zero
-mask represented as a dense PyTorch tensor** and **physically narrower dense control and
-optional OpenVINO/NNCF native path** without running them. Next inspect the dimensions
-or lifecycle state that implements the derivation. After **Run All**, verify the RTX
-5090 environment and the frozen fields before reconciling the result table with the
-artifact.
-
-The reader loop for **OpenVINO, NNCF, and Intel Runtime Sparsity** is **predict →
-execute → inspect → explain → decide**. Transferring its final number to another
-architecture, workload shape, or backend requires a new run because those variables sit
-outside this lesson's evidence.
 
 ## Reproduce
 
@@ -172,33 +130,15 @@ This lesson's optional/native backend path requires:
 pip install openvino nncf neural-compressor
 ```
 
-To reproduce **OpenVINO, NNCF, and Intel Runtime Sparsity**, use a PyTorch build
-compiled for the target GPU and select `Run All`. Compare the measurements in the frozen
-protocol with the checked-in artifact. If this lesson touches an optional toolchain,
-install that named backend before claiming native execution; otherwise only the
-compatibility fields are valid.
-
 ## Extend the experiment
 
 Create a pinned OpenVINO/NNCF environment, export both candidates, inspect IR dimensions
 and operators, then benchmark several thread and batch settings on the actual CPU
 target.
 
-For Lesson 17, the proposed extension is a new evidence layer rather than a replacement
-for the checked-in control. Add one of its requested dimensions at a time and retain
-this mechanism run, so a quality, export, operator, or service-level reversal can be
-localized.
-
 ## Evidence boundary
 
-The notebook records real package/API availability and preserves the native success or
-failure state. Missing backend execution remains unmeasured.
-
-The checked-in **OpenVINO, NNCF, and Intel Runtime Sparsity** observation belongs to
-Lesson 17's RTX 5090 environment, shapes, seed, and protocol. It does not establish the
-unmeasured task quality or platform properties named in the failure analysis. This
-independently written tutorial uses the study topic as a question, without
-redistributing source HTML, model weights, private paths, or infrastructure.
+**Evidence label:** [`compatibility-probe`](../README.md#evidence-labels).
 
 ## References
 

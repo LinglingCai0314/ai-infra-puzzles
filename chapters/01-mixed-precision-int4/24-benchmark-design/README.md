@@ -47,6 +47,28 @@ p95/p99 expose interference and queueing. Peak CUDA allocation is not total proc
 memory and should be paired with reserved memory and cache capacity when deployment fit
 is evaluated.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  W["Frozen request distribution"] --> Q["Queueing"]
+  Q --> P["Prefill"]
+  P --> D["Decode loop"]
+  D --> O["Completed requests"]
+  Q --> M["p50 / p95 / p99 ledger"]
+  P --> M
+  D --> M
+  O --> T["throughput + capacity"]
+  T --> G{"all SLO and quality gates pass?"}
+```
+
+### Walk it step by step
+
+1. **Freeze the service workload.** Specify prompt/output lengths, arrival pattern, concurrency, batching policy, and cache state.
+2. **Measure latency as phases.** Separate queueing, Prefill, inter-token Decode, and total request latency.
+3. **Report distributions and throughput together.** A throughput gain is incomplete when p95 or p99 violates the service objective.
+4. **Attribute the result.** Pair end-to-end metrics with memory and operator evidence so a bottleneck shift is visible.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Benchmark a CUDA MLP over several batch sizes, recording median, p90, examples per second, and peak allocated memory.
@@ -117,15 +139,6 @@ Deriving service throughput from a single operator omits non-quantized layers an
 scheduling. Another trap is reporting only the best concurrency before OOM or rejection,
 without a safety margin and sustained-load duration.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map batch-1 BF16 two-layer MLP operator workload and
-the same operator at batches 8, 32, and 128 back to the derivation. Verify the printed
-environment, then check that model, hidden sizes, dtype, GPU, warm-up five, repeats
-twenty stayed fixed. Read median/p90 operator latency, derived examples/s, peak
-allocated MiB before applying the acceptance gate; the artifact-writing cell retains the
-complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -147,13 +160,7 @@ queue depth, rejection, power, and peak/reserved memory for each concurrency lev
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 24's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

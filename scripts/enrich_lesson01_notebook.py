@@ -6,13 +6,18 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from tutorial_guides import CHAPTER_01_GUIDES, render_guide
+
 
 ROOT = Path(__file__).resolve().parents[1]
 PATH = ROOT / "chapters" / "01-mixed-precision-int4" / "01-precision-formats" / "lab.ipynb"
 
 
+LESSON_01_GUIDE = render_guide(CHAPTER_01_GUIDES[1])
+
+
 BLOCKS = {
-    "## 1. Measurement protocol": ("l01-theory-formats", """## Theory bridge — a format is not a speed rank
+    "## 1. Measurement protocol": ("l01-theory-formats", f"""## Theory bridge — a format is not a speed rank
 
 A precision decision has at least five parts: **storage representation, scale or
 packing metadata, compute input dtype, accumulation dtype, and the operator that
@@ -29,7 +34,9 @@ ideal weight bytes = parameter count × nominal bytes per stored weight
 Real allocated memory adds unquantized layers, group scales, packed-layout
 metadata, temporary conversion buffers, activations, cache, workspaces, and
 allocator behavior. The notebook records several ledger lines instead of
-pretending that nominal bit width equals runtime memory."""),
+pretending that nominal bit width equals runtime memory.
+
+{LESSON_01_GUIDE}"""),
     "## 2. Run the BF16 baseline": ("l01-theory-baseline", """## Theory bridge — why the BF16 baseline comes first
 
 The baseline freezes the checkpoint, prompt tokens, batch, sequence lengths,

@@ -46,6 +46,27 @@ place quantized boundaries. TensorRT currently treats INT4 as weight-only and co
 block sizes/axes. A Python Q/DQ tensor can test the math, but only a serialized engine
 and inspected layer implementation establish TensorRT execution.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  W["FP weight"] --> Q["Quantize / pack INT4 blocks"]
+  Q --> DQ["Q/DQ graph semantics"]
+  X["FP16/BF16 activation"] --> B["TensorRT builder"]
+  DQ --> B
+  B --> T{"supported INT4 tactic?"}
+  T -->|"yes"| E["WoQ / INT4 engine"]
+  T -->|"no"| F["fallback or build failure"]
+  E --> V["Numerical + latency validation"]
+```
+
+### Walk it step by step
+
+1. **Express quantization in the graph.** Q/DQ nodes and their axes, block sizes, and scales must describe the intended representation.
+2. **Build for a named target.** TensorRT validates dtype, shape, hardware, and tactic constraints during engine construction.
+3. **Inspect the selected implementation.** A successful build does not prove that the intended INT4 tactic was selected.
+4. **Validate numerics and performance.** Compare the engine with the frozen baseline under the same inputs and timing protocol.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Perform block INT4 Q/DQ and nibble packing on CUDA, verify exact unpacking, and separately probe the TensorRT package.
@@ -114,15 +135,6 @@ dropping scale layout, or claiming 0.5 byte per weight without metadata and padd
 successful engine build can still insert dequantize work that defeats the expected
 benefit, so engine inspection is required.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map floating-point 512×1024 weight tensor and
-block-64 INT4 Q/DQ plus explicit nibble pack/unpack back to the derivation. Verify the
-printed environment, then check that weight tensor, grouping axis, scale rule, code
-order, CUDA numerical reference stayed fixed. Read packed bytes, exact code round-trip,
-RMSE/cosine, TensorRT package probe before applying the acceptance gate; the
-artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -145,13 +157,7 @@ beneficial.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 16's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 

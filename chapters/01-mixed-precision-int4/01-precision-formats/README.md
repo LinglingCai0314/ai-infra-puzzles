@@ -64,6 +64,29 @@ Cores. It does not normally shrink a stored FP32 checkpoint from four bytes per
 parameter to two. INT4 changes how weights are mapped, packed, scaled, and read
 by a quantized operator. They solve different problems.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  W["model weights"] --> P["packed INT4 codes + scales"]
+  A["BF16 activations"] --> K["weight-only linear kernel"]
+  P --> K
+  K --> O["BF16/FP32 accumulation and output"]
+  O --> C["next layer and KV-cache path"]
+  K --> E["memory + operator + latency + quality evidence"]
+```
+
+### Walk it step by step
+
+1. **Start with the stored object.** Identify which weights are packed to INT4
+   and which layers remain BF16.
+2. **Follow the runtime data path.** Track packed codes, group scales, BF16
+   activations, accumulation dtype, and any unpack or dequantization work.
+3. **Read four evidence axes.** Evaluate memory, operator identity, latency, and
+   quality independently under one frozen workload.
+4. **Make a workload-specific decision.** Use INT4 for the tested path only when
+   its capacity benefit and service gates justify the added kernel work.
+
 ## 2. Keep a memory ledger
 
 The theoretical weight size is only the first entry:

@@ -117,16 +117,6 @@ leave the heading 'TorchAO benchmark'. Another failure is installing arbitrary n
 wheels until import succeeds without checking ABI compatibility or whether the
 environment was altered for other lessons.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map BF16 linear module, reserved as the fallback path
-and TorchAO `Int4WeightOnlyConfig` conversion on the same CUDA stack back to the
-derivation. Verify the printed environment, then check that PyTorch 2.12/CUDA 13
-environment, RTX 5090, layer/config intent stayed fixed. Read package presence,
-conversion status, exact exception class/message; downstream metrics only on success
-before applying the acceptance gate; the artifact-writing cell retains the complete
-structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -149,13 +139,7 @@ and a comparison with the BF16 baseline.
 
 ## Evidence boundary
 
-The named optional backend did not complete a native run in this environment. Package
-and failure evidence are retained; service or kernel performance is not inferred.
-
-The checked-in observation belongs to Lesson 15's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`compatibility-probe`](../README.md#evidence-labels).
 
 ## References
 

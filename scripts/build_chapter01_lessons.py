@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 from textwrap import dedent
 
+from tutorial_guides import CHAPTER_01_MAP
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CHAPTER = ROOT / "chapters" / "01-mixed-precision-int4"
@@ -951,6 +953,28 @@ This retains the useful conceptual path of the study curriculum while replacing
 generic prose with lesson-specific formulas, tensor objects, failure modes, and
 experiments. A numerical model can explain a mechanism; it cannot stand in for
 TensorRT, vLLM, CUTLASS, bitsandbytes, ModelOpt, or Transformer Engine execution.
+
+## Learning path at a glance
+
+```mermaid
+{CHAPTER_01_MAP}
+```
+
+## How to read a lesson
+
+1. Make the prediction before opening the retained result.
+2. Map the diagram and derivation to the baseline and candidate in `lab.ipynb`.
+3. Verify the environment and frozen variables before comparing metrics.
+4. Reconcile notebook output with the JSON artifact, then apply the acceptance gate.
+
+## Evidence labels
+
+| Label | What it establishes |
+|---|---|
+| `pytorch-gpu` | CUDA execution through PyTorch, without inferring an unnamed native kernel |
+| `numerical-model` | A controlled mechanism, not a full paper or production reproduction |
+| `compatibility-probe` | Package or API availability and its exact success/failure boundary |
+| `capacity-model` | Transparent planning arithmetic anchored by measured CUDA facts |
 
 ## Lessons
 

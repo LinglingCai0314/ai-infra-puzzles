@@ -47,6 +47,27 @@ interchangeable slider. The manifest should therefore make format, group/block s
 calibration, handoff status, and rollback target explicit. Missing stages remain false
 rather than being inferred from a numerical probe.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  M["Pinned model + tokenizer"] --> O["ModelOpt calibration / quantization"]
+  C["Calibration corpus + recipe"] --> O
+  O --> A["Quantized checkpoint + metadata"]
+  A --> B["TensorRT-LLM build"]
+  H["Target GPU + build config"] --> B
+  B --> E["Engine"]
+  E --> V["Quality, latency, memory gates"]
+  V --> P["Versioned serving package"]
+```
+
+### Walk it step by step
+
+1. **Pin the source model.** Record model revision, tokenizer, and baseline quality before conversion.
+2. **Calibrate or optimize.** ModelOpt produces scales, recipes, or a quantized checkpoint tied to calibration data and target format.
+3. **Build the runtime engine.** TensorRT-LLM consumes the supported artifact for a named GPU, shape range, and parallel configuration.
+4. **Carry provenance into serving.** The final package must preserve every revision and command needed to reproduce quality and performance.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Generate and validate a quantization handoff manifest seeded by a CUDA numerical probe, while checking ModelOpt and TensorRT-LLM availability independently.
@@ -115,15 +136,6 @@ but omitting the grouping axis can preserve bytes while changing meaning. Anothe
 failure is comparing engines built with different scheduler, tensor-parallel, or plugin
 settings and attributing the difference to quantization alone.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map versioned BF16 rollback revision and INT4 handoff
-manifest with scale fingerprint back to the derivation. Verify the printed environment,
-then check that fixed synthetic scale tensor, schema requirements, base/rollback
-identifiers stayed fixed. Read manifest completeness, SHA-256 fingerprint, package
-availability, numerical Q/DQ error before applying the acceptance gate; the
-artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -146,13 +158,7 @@ the same serving interface.
 
 ## Evidence boundary
 
-The named optional backend did not complete a native run in this environment. Package
-and failure evidence are retained; service or kernel performance is not inferred.
-
-The checked-in observation belongs to Lesson 17's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`compatibility-probe`](../README.md#evidence-labels).
 
 ## References
 

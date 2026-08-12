@@ -47,6 +47,26 @@ other channels and makes their shared quantization ranges coarse. The optimum is
 therefore empirical and depends on calibration coverage, group size, layer distribution,
 and the held-out objective.
 
+### Mechanism at a glance
+
+```mermaid
+flowchart LR
+  X["Activation statistics"] --> I["Rank salient channels"]
+  W["FP weights"] --> S["Search channel scaling"]
+  I --> S
+  S --> Q["Quantize scaled weights to INT4"]
+  Q --> V["Validate held-out output"]
+  V -->|"gate fails"| S
+  V -->|"gate passes"| P["Pack for W4A16 backend"]
+```
+
+### Walk it step by step
+
+1. **Observe activation-aware salience.** A small weight can matter when it multiplies a consistently large activation channel.
+2. **Search a scaling strength.** Rescale selected channels so important weights occupy more useful quantization levels.
+3. **Fold the scale into adjacent operations.** Preserve the floating function before quantization and avoid adding an unexplained runtime transform.
+4. **Judge the quantized output.** Use held-out layer or task error, not weight reconstruction error alone, to select the candidate.
+
 ## 3. Translate the theory into an experiment
 
 **Experiment:** Search activation-aware per-channel scaling strengths for a toy W4A16 layer and compare output error with naive INT4.
@@ -114,15 +134,6 @@ Reporting W4 storage without the higher-precision activation path misstates memo
 compute. And a numerical improvement does not imply latency improvement; the online
 dequantization and packed GEMM path must exist for the chosen shape.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map uniform W4A16 reference quantization at alpha 0
-and activation-aware channel scaling across alpha 0.25–1.0 back to the derivation.
-Verify the printed environment, then check that same weights, calibration/held-out
-split, group quantizer, activation distribution stayed fixed. Read held-out layer-output
-RMSE, MAE, cosine and selected alpha before applying the acceptance gate; the
-artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -145,13 +156,7 @@ batch/sequence sweeps in a serving runtime.
 
 ## Evidence boundary
 
-The CUDA numerical experiment isolates an algorithmic mechanism. It is not the paper's
-complete implementation and does not establish a production kernel speedup.
-
-The checked-in observation belongs to Lesson 12's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`numerical-model`](../README.md#evidence-labels).
 
 ## References
 

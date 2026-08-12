@@ -114,15 +114,6 @@ four-bit arithmetic omits metadata and high-precision tensors, and free memory o
 otherwise empty process is not engine capacity. Cost comparisons without throughput and
 quality at equal SLO are also meaningless.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map 70B BF16 weights with BF16 KV cache and ideal
-INT4 weights with BF16 or INT8 KV cache back to the derivation. Verify the printed
-environment, then check that 70B parameters, 80 layers, 8 KV heads, head dimension 128,
-context 8192, 10% reserve stayed fixed. Read live total/free GiB, weight GiB, KV
-GiB/request, fit boolean, projected request count before applying the acceptance gate;
-the artifact-writing cell retains the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -145,13 +136,7 @@ candidate GPU plans.
 
 ## Evidence boundary
 
-The calculation uses live GPU information and/or a CUDA probe, but it remains a planning
-model until a named full engine, quality suite, and service workload execute.
-
-The checked-in observation belongs to Lesson 28's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`capacity-model`](../README.md#evidence-labels).
 
 ## References
 

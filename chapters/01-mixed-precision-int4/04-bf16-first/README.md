@@ -123,15 +123,6 @@ selecting FP16 solely for lower RMSE can fail as soon as activations exceed its 
 Another failure is to assume the accumulator shares the input dtype. Record autocast
 policy and operator behavior when reduction accuracy matters.
 
-## 6. Follow the theory inside the notebook
-
-In [`lab.ipynb`](lab.ipynb), first map FP32 GEMM and FP32 reference output and FP16 and
-BF16 GEMMs on the same 1536×1536 matrices back to the derivation. Verify the printed
-environment, then check that shape, random source values, GPU, warm-up, repetitions,
-comparison reference stayed fixed. Read finite-range probe, RMSE/cosine error, median
-and p90 latency before applying the acceptance gate; the artifact-writing cell retains
-the complete structured result from the recorded run.
-
 ## Reproduce
 
 From the repository root:
@@ -155,13 +146,7 @@ unacceptable.
 
 ## Evidence boundary
 
-The measured tensors and operations ran on CUDA through PyTorch. The result does not
-name a separate production backend unless an operator trace identifies it.
-
-The checked-in observation belongs to Lesson 04's recorded RTX 5090 environment and
-controlled variables. It can explain this mechanism without establishing unmeasured
-full-model quality or online-service performance. The tutorial is independently written
-and does not redistribute course source files, model weights, or private infrastructure.
+**Evidence label:** [`pytorch-gpu`](../README.md#evidence-labels).
 
 ## References
 
