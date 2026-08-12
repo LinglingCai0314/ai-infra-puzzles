@@ -1,0 +1,66 @@
+{
+  "lesson": 11,
+  "title": "Tensor, Pipeline, Data, and Expert Parallelism",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260823
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "topology": {
+      "nodes": 2,
+      "gpus": 8,
+      "gpus_per_node": 4,
+      "gpu_gib": 31.35833740234375
+    },
+    "assumptions": {
+      "model_parameters_billion": 70.0,
+      "bf16_weight_gib": 130.385160446167,
+      "reserve_gib_per_gpu": 5.0,
+      "activation_gib_step": 3.0
+    },
+    "layouts": {
+      "tp8": {
+        "tp": 8,
+        "dp": 1,
+        "pp": 1,
+        "replicas": 1,
+        "weight_gib_per_gpu": 16.298145055770874,
+        "fits": true,
+        "cross_node_gib_step": 1.5
+      },
+      "tp4_dp2": {
+        "tp": 4,
+        "dp": 2,
+        "pp": 1,
+        "replicas": 2,
+        "weight_gib_per_gpu": 32.59629011154175,
+        "fits": false,
+        "cross_node_gib_step": 0.0
+      },
+      "tp4_pp2": {
+        "tp": 4,
+        "dp": 1,
+        "pp": 2,
+        "replicas": 1,
+        "weight_gib_per_gpu": 16.298145055770874,
+        "fits": true,
+        "cross_node_gib_step": 0.75
+      }
+    },
+    "cli": {
+      "tensor_parallel": false,
+      "pipeline_parallel": false,
+      "data_parallel": false
+    },
+    "native_multi_gpu_executed": false
+  },
+  "analysis": "The ledger estimates 130.4 GiB BF16 weights. TP8/TP4×DP2 fit=True/False; only the modeled TP8 collective crosses nodes. No distributed run occurred.",
+  "conclusion": "The capacity model rejects impossible or topology-hostile layouts; it does not measure multi-GPU vLLM performance."
+}

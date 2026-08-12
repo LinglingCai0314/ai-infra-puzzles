@@ -1,0 +1,80 @@
+{
+  "lesson": 26,
+  "title": "A Hypothesis-Driven Tuning Loop",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260838
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "candidates": 4,
+    "rows": [
+      {
+        "batch": 1,
+        "samples_s": [
+          0.15541153494268656,
+          0.15411847503855824,
+          0.1518243169412017
+        ],
+        "median_s": 0.15411847503855824,
+        "p95_s": 0.15528222895227373,
+        "output_tokens_s": 129.77029519008858
+      },
+      {
+        "batch": 2,
+        "samples_s": [
+          0.1692607388831675,
+          0.17057588510215282,
+          0.16858342802152038
+        ],
+        "median_s": 0.1692607388831675,
+        "p95_s": 0.1704443704802543,
+        "output_tokens_s": 236.3217853350508
+      },
+      {
+        "batch": 4,
+        "samples_s": [
+          0.17220011912286282,
+          0.17002959735691547,
+          0.17067675665020943
+        ],
+        "median_s": 0.17067675665020943,
+        "p95_s": 0.17204778287559747,
+        "output_tokens_s": 468.72228867082725
+      },
+      {
+        "batch": 8,
+        "samples_s": [
+          0.18180206790566444,
+          0.17201210465282202,
+          0.17290608817711473
+        ],
+        "median_s": 0.17290608817711473,
+        "p95_s": 0.1809124699328095,
+        "output_tokens_s": 925.3578152557908
+      }
+    ],
+    "p95_gate_s": 0.42611092620063573,
+    "feasible_candidates": 4,
+    "selected": {
+      "batch": 8,
+      "samples_s": [
+        0.18180206790566444,
+        0.17201210465282202,
+        0.17290608817711473
+      ],
+      "median_s": 0.17290608817711473,
+      "p95_s": 0.1809124699328095,
+      "output_tokens_s": 925.3578152557908
+    },
+    "peak_allocated_mib": 0.0
+  },
+  "analysis": "The one-variable sweep kept 4/4 rows below the 0.426 s closed-batch p95 gate. Batch 8 led feasible throughput at 925.4 output tokens/s; online latency is not inferred.",
+  "conclusion": "A tuning result is a gated comparison with frozen variables and raw evidence, not a collection of unexplained flags."
+}

@@ -1,0 +1,62 @@
+{
+  "lesson": 20,
+  "title": "Benchmarking Latency, Throughput, and Workloads",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260832
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "batches": {
+      "1": {
+        "samples_s": [
+          0.19944166205823421,
+          0.19021221715956926,
+          0.1879363670013845
+        ],
+        "median_s": 0.19021221715956926,
+        "p95_s": 0.19851871756836773,
+        "prompt_tokens": 13,
+        "output_tokens": 24,
+        "requests_s": 5.2572858617230604,
+        "output_tokens_s": 126.17486068135345
+      },
+      "4": {
+        "samples_s": [
+          0.22377016488462687,
+          0.20532395131886005,
+          0.20539495069533587
+        ],
+        "median_s": 0.20539495069533587,
+        "p95_s": 0.22193264346569774,
+        "prompt_tokens": 52,
+        "output_tokens": 96,
+        "requests_s": 19.474675431204904,
+        "output_tokens_s": 467.3922103489177
+      },
+      "8": {
+        "samples_s": [
+          0.20907161105424166,
+          0.20688731269910932,
+          0.2090968773700297
+        ],
+        "median_s": 0.20907161105424166,
+        "p95_s": 0.20909435073845087,
+        "prompt_tokens": 104,
+        "output_tokens": 192,
+        "requests_s": 38.264401176515904,
+        "output_tokens_s": 918.3456282363817
+      }
+    },
+    "repeats": 3,
+    "peak_allocated_mib": 0.0
+  },
+  "analysis": "Batch 1/4/8 measured 126.2/467.4/918.3 output tokens/s in a warmed closed workload. Raw samples are retained; online TTFT/ITL are outside scope.",
+  "conclusion": "The native sweep establishes offline batching behavior for three frozen cells; it cannot be generalized to online traffic without new evidence."
+}

@@ -1,0 +1,49 @@
+{
+  "lesson": 27,
+  "title": "Disaggregated Prefill and Decode",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260839
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "kv_bytes_per_token": 28672,
+    "contexts": {
+      "2048": {
+        "kv_mib": 56.0,
+        "transfer_ms_25gbps": 19.140481920000003,
+        "transfer_ms_200gbps": 2.6988102400000002
+      },
+      "8192": {
+        "kv_mib": 224.0,
+        "transfer_ms_25gbps": 75.51192768,
+        "transfer_ms_200gbps": 9.74524096
+      },
+      "32768": {
+        "kv_mib": 896.0,
+        "transfer_ms_25gbps": 300.99771072000004,
+        "transfer_ms_200gbps": 37.930963840000004
+      }
+    },
+    "assumptions": {
+      "coordination_ms": 0.35,
+      "bandwidth_gbps": [
+        25,
+        200
+      ]
+    },
+    "connector_probe": true,
+    "connector_symbols": [
+      "KVConnectorBaseType"
+    ],
+    "native_disaggregation_executed": false
+  },
+  "analysis": "BF16 KV is 28,672 bytes/token. An 8K prompt transfers 224.0 MiB: ideal 75.51/9.75 ms at 25/200 Gb/s including declared coordination. No two-worker run occurred.",
+  "conclusion": "The break-even model identifies contexts and links worth testing; it is not evidence that disaggregated serving is faster."
+}

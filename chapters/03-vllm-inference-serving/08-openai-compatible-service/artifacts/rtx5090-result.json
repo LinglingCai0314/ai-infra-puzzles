@@ -1,0 +1,31 @@
+{
+  "lesson": 8,
+  "title": "The OpenAI-Compatible HTTP Service",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260820
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "server_ready": true,
+    "startup_s": 20.045627764891833,
+    "models_status": 200,
+    "chat_status": 200,
+    "chat_latency_s": 0.10052789002656937,
+    "completion_tokens": 7,
+    "schema_valid": true,
+    "model_ids": [
+      "Qwen2.5-1.5B-Instruct"
+    ],
+    "response_preview": "Fast access, high performance.",
+    "server_log_tail": " 08-13 00:18:30 [launcher.py:46] Route: /v1/responses/{response_id}/cancel, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /v1/completions, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /v1/messages, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /v1/messages/count_tokens, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /generative_scoring, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /scale_elastic_ep, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /is_scaling_elastic_ep, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /v1/chat/completions/render, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /v1/completions/render, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /v1/chat/completions/derender, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /v1/completions/derender, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:46] Route: /inference/v1/generate, Methods: POST\n(APIServer pid=650324) INFO 08-13 00:18:30 [launcher.py:99] API server: waiting for HTTP server to start\n(APIServer pid=650324) INFO:     Started server process [650324]\n(APIServer pid=650324) INFO:     Waiting for application startup.\n(APIServer pid=650324) INFO:     Application startup complete.\n(APIServer pid=650324) INFO 08-13 00:18:31 [launcher.py:105] API server: HTTP server started\n(APIServer pid=650324) INFO 08-13 00:18:31 [launcher.py:112] [shutdown] API server: shutdown triggered\n(APIServer pid=650324) INFO 08-13 00:18:31 [launcher.py:128] [shutdown] API server: stopping engine client mode=abort timeout=0s\n(APIServer pid=650324) INFO 08-13 00:18:31 [core_client.py:686] [shutdown] MPClient: start timeout=0s\n(APIServer pid=650324) INFO 08-13 00:18:31 [core_client.py:688] [shutdown] MPClient: stopping engine manager\n(APIServer pid=650324) INFO 08-13 00:18:31 [utils.py:612] [shutdown] Process manager: send sigterm to process EngineCore\n(APIServer pid=650324) WARNING 08-13 00:18:31 [utils.py:632] [shutdown] Process manager: force killing remaining processes count=1\n(APIServer pid=650324) WARNING 08-13 00:18:31 [utils.py:637] [shutdown] Process manager: force killing remaining process EngineCore pid 650368\n(EngineCore pid=650368) INFO 08-13 00:18:31 [core.py:1332] [shutdown] EngineCore: trigger received signal=SIGTERM\n(EngineCore pid=650368) INFO 08-13 00:18:31 [core.py:1468] [shutdown] EngineCore: start mode=abort timeout=0s\n(EngineCore pid=650368) INFO 08-13 00:18:31 [core.py:1499] [shutdown] EngineCore: request processing complete; starting resource teardown\n(EngineCore pid=650368) INFO 08-13 00:18:31 [core.py:1345] [shutdown] EngineCore: exiting busy loop\n(APIServer pid=650324) INFO 08-13 00:18:31 [core_client.py:690] [shutdown] MPClient: engine manager stopped\n(APIServer pid=650324) INFO 08-13 00:18:31 [core_client.py:691] [shutdown] MPClient: cleaning up background resources\n(APIServer pid=650324) INFO 08-13 00:18:31 [core_client.py:693] [shutdown] MPClient: complete\n(APIServer pid=650324) INFO 08-13 00:18:31 [launcher.py:137] [shutdown] API server: engine client stopped\n(APIServer pid=650324) INFO 08-13 00:18:31 [launcher.py:140] [shutdown] API server: signalling HTTP server shutdown\n(APIServer pid=650324) INFO 08-13 00:18:31 [launcher.py:161] [shutdown] API server: shutting down FastAPI HTTP server\n(APIServer pid=650324) INFO:     Shutting down\n(APIServer pid=650324) INFO:     Waiting for application shutdown.\n(APIServer pid=650324) INFO:     Application shutdown complete.\n<remote-home>/miniconda3/lib/python3.12/multiprocessing/resource_tracker.py:254: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown\n  warnings.warn('resource_tracker: There appear to be %d '\n"
+  },
+  "analysis": "The server became ready in 20.05 s; models/chat returned HTTP 200/200 and schema valid=True. This covers one non-streaming localhost route.",
+  "conclusion": "The localhost test proves the selected Chat route and response schema for this model/server pair; compatibility beyond that matrix remains unmeasured."
+}

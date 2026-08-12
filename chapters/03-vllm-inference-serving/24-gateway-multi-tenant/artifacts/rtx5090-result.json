@@ -1,0 +1,101 @@
+{
+  "lesson": 24,
+  "title": "Gateway Admission, Rate Limits, and Multi-Tenancy",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260836
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "request_count": {
+      "admitted_requests": 7,
+      "admitted_tokens": 21540,
+      "interactive_admitted": 4,
+      "batch_admitted": 3,
+      "rejected": [],
+      "tenant_tokens": {
+        "interactive": 540,
+        "batch": 21000
+      },
+      "interactive_p95_wait": 0.0,
+      "batch_p95_wait": 27.759999999999998,
+      "fairness": 0.5256972940341489
+    },
+    "token_budget": {
+      "admitted_requests": 5,
+      "admitted_tokens": 7540,
+      "interactive_admitted": 4,
+      "batch_admitted": 1,
+      "rejected": [
+        "b2",
+        "b3"
+      ],
+      "tenant_tokens": {
+        "interactive": 540,
+        "batch": 7000
+      },
+      "interactive_p95_wait": 0.0,
+      "batch_p95_wait": 0.0,
+      "fairness": 0.5766864942505416
+    },
+    "events": [
+      {
+        "id": "i1",
+        "tenant": "interactive",
+        "arrival": 0,
+        "prompt": 80,
+        "output": 40
+      },
+      {
+        "id": "b1",
+        "tenant": "batch",
+        "arrival": 0,
+        "prompt": 6000,
+        "output": 1000
+      },
+      {
+        "id": "i2",
+        "tenant": "interactive",
+        "arrival": 1,
+        "prompt": 120,
+        "output": 60
+      },
+      {
+        "id": "b2",
+        "tenant": "batch",
+        "arrival": 1,
+        "prompt": 8000,
+        "output": 1200
+      },
+      {
+        "id": "i3",
+        "tenant": "interactive",
+        "arrival": 2,
+        "prompt": 60,
+        "output": 30
+      },
+      {
+        "id": "b3",
+        "tenant": "batch",
+        "arrival": 3,
+        "prompt": 4000,
+        "output": 800
+      },
+      {
+        "id": "i4",
+        "tenant": "interactive",
+        "arrival": 4,
+        "prompt": 100,
+        "output": 50
+      }
+    ]
+  },
+  "analysis": "Count admission accepted 21,540 tokens and 3 batch jobs; token budgeting accepted 7,540 and 1 while retaining interactive budget. Queue costs are modeled.",
+  "conclusion": "Token-aware admission better represents inference cost than request counts, but production limits require native traffic calibration."
+}

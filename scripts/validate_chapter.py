@@ -44,7 +44,7 @@ def main() -> int:
         return 1
     chapter = matches[0]
     lessons = sorted(path for path in chapter.glob("[0-9][0-9]-*") if path.is_dir())
-    expected_counts = {"01": 30, "02": 28}
+    expected_counts = {"01": 30, "02": 28, "03": 30}
     expected = list(range(1, expected_counts[number] + 1)) if number in expected_counts else None
     actual = [int(path.name.split("-", 1)[0]) for path in lessons]
     if expected and actual != expected:

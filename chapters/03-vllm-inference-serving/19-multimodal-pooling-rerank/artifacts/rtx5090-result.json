@@ -1,0 +1,47 @@
+{
+  "lesson": 19,
+  "title": "Multimodal, Embedding, and Rerank Service Boundaries",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260831
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "model": {
+      "architecture": "Qwen2ForCausalLM",
+      "multimodal_config_keys": []
+    },
+    "routes": {
+      "chat": {
+        "ready": true,
+        "reason": "causal generation architecture"
+      },
+      "embeddings": {
+        "ready": false,
+        "reason": "no pooling checkpoint/evaluation"
+      },
+      "rerank": {
+        "ready": false,
+        "reason": "no scoring checkpoint/evaluation"
+      },
+      "multimodal": {
+        "ready": false,
+        "reason": "text-only config"
+      }
+    },
+    "native_non_generation_tests": 0,
+    "required_next_models": [
+      "embedding",
+      "rerank",
+      "multimodal"
+    ]
+  },
+  "analysis": "Architecture Qwen2ForCausalLM enables Chat=True and blocks embeddings/rerank/multimodal=False/False/False pending matching native models and evaluations.",
+  "conclusion": "A vLLM installation is multi-capability; this checkpoint is not. Route registration must follow native model/task evidence."
+}

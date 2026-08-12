@@ -1,0 +1,45 @@
+{
+  "lesson": 25,
+  "title": "Diagnosing OOM, CUDA, and Tokenizer Failures",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260837
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "checks": {
+      "request_schema": true,
+      "tokenizer_files": true,
+      "model_config": true,
+      "vllm_import": true,
+      "cuda_available": true,
+      "model_weights": true
+    },
+    "checks_passed": 6,
+    "checks_total": 6,
+    "first_failing_layer": "none",
+    "cuda_available": true,
+    "free_gpu_mib": 31603.6875,
+    "total_gpu_mib": 32110.9375,
+    "tokenizer_files": 4,
+    "safe_failures": [
+      {
+        "layer": "request",
+        "type": "VLLMValidationError"
+      },
+      {
+        "layer": "engine_config",
+        "type": "ValueError"
+      }
+    ],
+    "safe_failures_classified": 2
+  },
+  "analysis": "The ordered checklist passed 6/6 layers with first failure=none; 31603.7 MiB was free and 2 safe failures were classified without inducing OOM.",
+  "conclusion": "Layered diagnosis preserves causality and shortens rollback decisions; this safe lab validates the checklist rather than inducing production failures."
+}

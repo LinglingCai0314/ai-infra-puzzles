@@ -1,0 +1,50 @@
+{
+  "lesson": 5,
+  "title": "A KV-Cache Memory Budget",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260817
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "gpu_total_mib": 32110.9375,
+    "weight_file_bytes": 3087467144,
+    "reserve_bytes": 3221225472,
+    "kv_budget_bytes": 22311452024,
+    "geometry": {
+      "layers": 28,
+      "kv_heads": 2,
+      "head_dim": 128
+    },
+    "kv_bytes_per_token": {
+      "bf16": 28672,
+      "fp8": 14336
+    },
+    "token_capacity": {
+      "bf16": 778161,
+      "fp8": 1556323
+    },
+    "concurrency": {
+      "bf16": {
+        "2048": 379,
+        "4096": 189,
+        "8192": 94,
+        "16384": 47
+      },
+      "fp8": {
+        "2048": 759,
+        "4096": 379,
+        "8192": 189,
+        "16384": 94
+      }
+    }
+  },
+  "analysis": "Model geometry yields 28,672 BF16 and 14,336 FP8 KV bytes/token. The declared budget gives a BF16 8K ceiling of 94 sequences; native allocation and latency must set the operational limit.",
+  "conclusion": "KV capacity is a budget equation anchored in model geometry; its result is a planning ceiling until native concurrency tests pass."
+}

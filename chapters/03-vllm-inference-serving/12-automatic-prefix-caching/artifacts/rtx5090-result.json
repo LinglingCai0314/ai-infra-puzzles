@@ -1,0 +1,87 @@
+{
+  "lesson": 12,
+  "title": "Automatic Prefix Caching",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260824
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "cold": {
+      "request_id": "0",
+      "prompt_tokens": 1537,
+      "output_tokens": 8,
+      "token_ids": [
+        220,
+        21806,
+        25,
+        348,
+        4086,
+        44,
+        10533,
+        1376
+      ],
+      "text_preview": "  Answer: vLLM stores key",
+      "text_sha256": "07fd2a0f0c58b59a504ca6eaa79568d9182889eff21c2588cf06cf0dfffe1b6a",
+      "finish_reason": "length",
+      "stop_reason": null,
+      "num_cached_tokens": 0,
+      "elapsed_s": 0.16188318887725472,
+      "cached_tokens": 0
+    },
+    "warm": {
+      "request_id": "1",
+      "prompt_tokens": 1536,
+      "output_tokens": 8,
+      "token_ids": [
+        220,
+        21806,
+        25,
+        348,
+        4086,
+        44,
+        10533,
+        1376
+      ],
+      "text_preview": "  Answer: vLLM stores key",
+      "text_sha256": "07fd2a0f0c58b59a504ca6eaa79568d9182889eff21c2588cf06cf0dfffe1b6a",
+      "finish_reason": "length",
+      "stop_reason": null,
+      "num_cached_tokens": 1520,
+      "elapsed_s": 0.07999701611697674,
+      "cached_tokens": 1520
+    },
+    "mutated": {
+      "request_id": "2",
+      "prompt_tokens": 1538,
+      "output_tokens": 8,
+      "token_ids": [
+        220,
+        21806,
+        25,
+        576,
+        348,
+        4086,
+        44,
+        10533
+      ],
+      "text_preview": "  Answer: The vLLM stores",
+      "text_sha256": "a6e932fa8be03b84e5d945ec45fff650e329fc81602a4e9bc6fa2c8d6a171e88",
+      "finish_reason": "length",
+      "stop_reason": null,
+      "num_cached_tokens": 0,
+      "elapsed_s": 0.08352008974179626,
+      "cached_tokens": 0
+    },
+    "prefix_characters": 7470,
+    "enable_prefix_caching": true
+  },
+  "analysis": "Cold/warm/mutated requests reported 0/1520/0 cached tokens; warm/cold elapsed was 0.0800/0.1619 s. The cached-token field is the hit evidence.",
+  "conclusion": "APC reuses exact, valid KV blocks; the retained native metadata distinguishes an observed hit from a timing guess."
+}

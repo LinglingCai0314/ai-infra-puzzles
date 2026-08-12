@@ -1,0 +1,52 @@
+{
+  "lesson": 13,
+  "title": "Chunked Prefill and Decode Interference",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260825
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "unchunked": {
+      "long_finish": 12.812000000000001,
+      "short_p95_delay": 8.224,
+      "short_max_delay": 8.272,
+      "prefill_chunks": 1,
+      "waits": [
+        7.192,
+        7.952,
+        8.272,
+        7.152000000000001
+      ]
+    },
+    "chunked": {
+      "long_finish": 13.451999999999998,
+      "short_p95_delay": 1.1360000000000001,
+      "short_max_delay": 1.1840000000000002,
+      "prefill_chunks": 8,
+      "waits": [
+        0.10400000000000009,
+        0.8639999999999999,
+        1.1840000000000002,
+        0.06400000000000006
+      ]
+    },
+    "cli": {
+      "chunked_prefill": false,
+      "max_num_batched_tokens": false
+    },
+    "cost_assumptions": {
+      "prefill_per_token": 0.002,
+      "decode_step": 0.22,
+      "chunk_overhead": 0.08
+    }
+  },
+  "analysis": "512-token chunking created 8 chunks and changed short-job p95 delay from 8.224 to 1.136 modeled units. Native traffic is still required.",
+  "conclusion": "Chunked Prefill creates scheduling opportunities; its production value must be selected from native mixed-traffic trade-offs."
+}

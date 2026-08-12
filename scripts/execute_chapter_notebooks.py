@@ -57,6 +57,13 @@ def main() -> int:
         from build_chapter02_lessons import build_chapter
 
         build_chapter(refresh_chapter_readme=False)
+    elif args.chapter == "03":
+        # Refresh lesson result tables after vLLM artifacts are written while
+        # retaining outputs for code cells whose reviewed source is unchanged.
+        from build_chapter03_lessons import build_chapter, sanitize_execution_records
+
+        sanitize_execution_records()
+        build_chapter(refresh_chapter_readme=False)
     print(f"Executed {len(notebooks)} notebooks successfully")
     return 0
 

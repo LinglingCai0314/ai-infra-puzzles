@@ -1,0 +1,90 @@
+{
+  "lesson": 15,
+  "title": "FP8 KV Cache: Capacity and Fidelity",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260827
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "auto": {
+      "success": true,
+      "elapsed_s": 0.18235449399799109,
+      "records": [
+        {
+          "request_id": "0",
+          "prompt_tokens": 8,
+          "output_tokens": 16,
+          "token_ids": [
+            84648,
+            6500,
+            10272,
+            2022,
+            374,
+            264,
+            14762,
+            1483,
+            304,
+            5662,
+            6832,
+            311,
+            7949,
+            279,
+            4938,
+            42872
+          ],
+          "text_preview": " KV cache quantization is a technique used in machine learning to reduce the memory footprint",
+          "text_sha256": "b795d33e5a0484db01fe1b14689a2e50e772a879c629dd20fdc344e9f97ea986",
+          "finish_reason": "length",
+          "stop_reason": null,
+          "num_cached_tokens": 0
+        },
+        {
+          "request_id": "1",
+          "prompt_tokens": 7,
+          "output_tokens": 16,
+          "token_ids": [
+            33551,
+            23,
+            37611,
+            5214,
+            374,
+            279,
+            5214,
+            315,
+            37611,
+            7901,
+            11,
+            892,
+            646,
+            2990,
+            311,
+            49404
+          ],
+          "text_preview": " FP8 calibration risk is the risk of calibration failure, which can lead to inaccurate",
+          "text_sha256": "1a789e85c059906fe6176e50be175c07dbde10a0c7b6b43818a425a9fca47a27",
+          "finish_reason": "length",
+          "stop_reason": null,
+          "num_cached_tokens": 0
+        }
+      ],
+      "error": null
+    },
+    "fp8": {
+      "success": false,
+      "elapsed_s": null,
+      "records": [],
+      "error": "RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}"
+    },
+    "theoretical_kv_capacity_ratio": 2.0,
+    "token_sequences_equal": false
+  },
+  "analysis": "Auto/FP8 success=True/False; leading KV capacity ratio is 2× and matched greedy tokens equal=False. Short prompts do not prove long-context capacity or task quality.",
+  "conclusion": "FP8 can halve the leading KV payload; the native A/B establishes only this model/build's execution and small-suite token behavior."
+}

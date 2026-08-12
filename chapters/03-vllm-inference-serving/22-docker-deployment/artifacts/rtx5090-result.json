@@ -1,0 +1,77 @@
+{
+  "lesson": 22,
+  "title": "A Reproducible Single-Node Container",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260834
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "manifest": {
+      "image": "vllm/vllm-openai@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "gpu": "all",
+      "ipc": "host",
+      "port": 8000,
+      "mounts": [
+        {
+          "source": "/srv/models/qwen",
+          "target": "/models/qwen",
+          "mode": "ro",
+          "kind": "model"
+        },
+        {
+          "source": "/srv/cache/vllm",
+          "target": "/cache/vllm",
+          "mode": "rw",
+          "kind": "cache"
+        }
+      ],
+      "secret": {
+        "source": "docker-secret",
+        "name": "vllm_api_key",
+        "in_command": false
+      },
+      "health": {
+        "path": "/health",
+        "interval_s": 10,
+        "start_period_s": 180
+      },
+      "command": [
+        "--model",
+        "/models/qwen",
+        "--max-model-len",
+        "8192",
+        "--disable-log-requests"
+      ],
+      "rollback_image": "vllm/vllm-openai@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "checks": {
+      "image_digest": true,
+      "rollback_digest": true,
+      "gpu_explicit": true,
+      "ipc_explicit": true,
+      "model_read_only": true,
+      "cache_separate": true,
+      "secret_external": true,
+      "secret_not_command": true,
+      "health_path": true,
+      "startup_budget": true,
+      "port_explicit": true,
+      "request_logging_disabled": true
+    },
+    "checks_passed": 12,
+    "checks_total": 12,
+    "image_digest_pinned": true,
+    "model_read_only": true,
+    "secret_external": true,
+    "native_docker_executed": false
+  },
+  "analysis": "The manifest passed 12/12 static invariants, including digest pinning, read-only model bytes, external secrets, and startup-aware health. No Docker daemon was invoked.",
+  "conclusion": "The audited manifest closes common reproducibility and secret-handling gaps; actual container execution remains a separate host test."
+}

@@ -12,7 +12,8 @@
   <a href="#what-is-ai-infra-puzzles"><strong>Overview</strong></a> ·
   <a href="#start-with-chapter-01"><strong>Start Here</strong></a> ·
   <a href="#quick-start"><strong>Quick Start</strong></a> ·
-  <a href="#how-this-repository-works"><strong>How It Works</strong></a>
+  <a href="#how-this-repository-works"><strong>How It Works</strong></a> ·
+  <a href="README_ZH.md"><strong>中文教程</strong></a>
 </p>
 
 <p align="center">
@@ -21,6 +22,7 @@
   <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12">
   <img src="https://img.shields.io/badge/Chapter_01-30_Labs-6C63FF" alt="Chapter 01 has 30 labs">
   <img src="https://img.shields.io/badge/Chapter_02-28_Labs-00A6A6" alt="Chapter 02 has 28 labs">
+  <img src="https://img.shields.io/badge/Chapter_03-30_Labs-F59E0B" alt="Chapter 03 has 30 labs">
 </p>
 
 ## What is AI Infra Puzzles?
@@ -105,6 +107,23 @@ See the [complete 28-lesson map](chapters/02-sparsity-structured-pruning/README.
 or start with
 [Lesson 01 — Pruning Objectives](chapters/02-sparsity-structured-pruning/01-pruning-objectives/README.md).
 
+## Continue with Chapter 03
+
+### [vLLM Inference and Serving](chapters/03-vllm-inference-serving/README.md)
+
+Chapter 03 follows a request from Prefill and KV-cache allocation through continuous
+batching, offline and OpenAI-compatible APIs, prefix caching, FP8 KV, speculative
+decoding, structured outputs, benchmarking, metrics, containers, Kubernetes, capacity,
+security, and a reversible production gate.
+
+Its 30 labs pin vLLM 0.27.1 and retain RTX 5090 evidence. Native vLLM execution,
+compatibility probes, scheduler simulations, and capacity models use different evidence
+labels. Single-GPU results never stand in for multi-node, Kubernetes, or disaggregated
+Prefill/Decode measurements.
+
+See the [complete 30-lesson map](chapters/03-vllm-inference-serving/README.md) or begin
+with [Lesson 01 — The Inference Service Bottleneck](chapters/03-vllm-inference-serving/01-inference-service-bottleneck/README.md).
+
 ## Quick Start
 
 ### Run the executed GPU notebook
@@ -142,6 +161,16 @@ python3 scripts/execute_chapter_notebooks.py --chapter 02 --start 1 --end 28
 python3 scripts/build_chapter02_lessons.py --chapter-readme
 python3 scripts/validate_chapter.py 02
 python3 scripts/audit_chapter02_delivery.py
+```
+
+To execute and validate Chapter 03 in the pinned vLLM environment:
+
+```bash
+export CH3_MODEL=/path/to/Qwen2.5-1.5B-Instruct
+python3 scripts/execute_chapter_notebooks.py --chapter 03 --start 1 --end 30
+python3 scripts/build_chapter03_lessons.py --chapter-readme
+python3 scripts/validate_chapter.py 03
+python3 scripts/audit_chapter03_delivery.py
 ```
 
 ### Command-line alternative
@@ -186,8 +215,8 @@ Predict → Run → Inspect → Explain
   reverse.
 
 Only completed lessons with runnable code and inspectable evidence are linked.
-Chapter 01 has 30 published labs and Chapter 02 has 28; both retain outputs from
-their recorded RTX 5090 environments.
+Chapters 01, 02, and 03 publish 30, 28, and 30 labs respectively; all retain outputs
+from their recorded RTX 5090 environments.
 
 ```text
 ai-infra-puzzles/
@@ -208,9 +237,15 @@ ai-infra-puzzles/
 │   │       ├── README.md
 │   │       ├── lab.ipynb
 │   │       └── artifacts/
-│   └── 02-sparsity-structured-pruning/
+│   ├── 02-sparsity-structured-pruning/
 │       ├── README.md       # 28-lesson chapter map
 │       └── 01-... through 28-.../
+│           ├── README.md
+│           ├── lab.ipynb
+│           └── artifacts/
+│   └── 03-vllm-inference-serving/
+│       ├── README.md       # 30-lesson chapter map
+│       └── 01-... through 30-.../
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/

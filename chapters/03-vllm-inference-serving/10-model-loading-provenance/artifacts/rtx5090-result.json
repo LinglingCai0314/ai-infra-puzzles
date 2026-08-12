@@ -1,0 +1,47 @@
+{
+  "lesson": 10,
+  "title": "Model Loading, Formats, and Provenance",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260822
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "weight_files": 1,
+    "weight_bytes": 3087467144,
+    "hashes": {
+      "config": "98d2ff8cc47488d08a2b0b3acf4eb99ef210779b42bd48605f6b8e36acdbf670",
+      "tokenizer": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+      "weights": "dd924a11b4c220f385b51ffa522daea7c9f3d850e31b162bb5661df483c6d3ee"
+    },
+    "architecture": "Qwen2ForCausalLM",
+    "declared_dtype": "bfloat16",
+    "tokenizer_class": "Qwen2Tokenizer",
+    "trust_remote_code": false,
+    "native_load": true,
+    "output": {
+      "request_id": "0",
+      "prompt_tokens": 4,
+      "output_tokens": 4,
+      "token_ids": [
+        24917,
+        53248,
+        13,
+        24917
+      ],
+      "text_preview": " Say authenticity. Say",
+      "text_sha256": "427fafcc41a0dc89052801ef1f5e027536404e7264013353ccfad4b39f13ed01",
+      "finish_reason": "length",
+      "stop_reason": null,
+      "num_cached_tokens": 0
+    }
+  },
+  "analysis": "The manifest covers 1 safetensors file(s), 3,087,467,144 bytes, three hashes, and architecture Qwen2ForCausalLM. The exact bytes completed native generation.",
+  "conclusion": "Reproducible loading requires immutable bytes and explicit trust decisions; a model alias alone is insufficient."
+}

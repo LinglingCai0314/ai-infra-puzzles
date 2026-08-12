@@ -1,0 +1,45 @@
+{
+  "lesson": 28,
+  "title": "Capacity, Cost, and Autoscaling",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260840
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "measured_output_tokens_s": 820.6668715815052,
+    "measurement_elapsed_s": 0.2339560748077929,
+    "measurement_output_tokens": 192,
+    "safe_utilization": 0.65,
+    "usable_output_tokens_s": 533.4334665279785,
+    "scenarios": {
+      "low": {
+        "demand_output_tokens_s": 246.20006147445156,
+        "base_replicas": 1,
+        "with_reserve": 2,
+        "projected_utilization": 0.3
+      },
+      "medium": {
+        "demand_output_tokens_s": 1148.9336202141073,
+        "base_replicas": 3,
+        "with_reserve": 4,
+        "projected_utilization": 0.4666666666666667
+      },
+      "peak": {
+        "demand_output_tokens_s": 2626.133989060817,
+        "base_replicas": 5,
+        "with_reserve": 6,
+        "projected_utilization": 0.64
+      }
+    },
+    "scale_up_lead_s": 180.0
+  },
+  "analysis": "The native closed batch measured 820.7 output tokens/s. At 65% safe utilization, medium/peak need 4/6 replicas including N+1. Online service curves remain required.",
+  "conclusion": "Replica arithmetic must be anchored to an SLO-safe service curve; the current native rate is a laboratory input, not production capacity."
+}

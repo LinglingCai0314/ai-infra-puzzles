@@ -48,9 +48,9 @@ original work.
 ## Third-party technologies and materials
 
 Lessons may use or discuss third-party projects and products, including CUDA,
-PyTorch, TorchAO, Transformers, Qwen model checkpoints, NVIDIA GPUs, and related
-research papers. Their names, code, models, documentation, and trademarks remain
-subject to their respective owners' licenses and terms.
+PyTorch, TorchAO, vLLM, Transformers, Qwen model checkpoints, NVIDIA GPUs, and
+related research papers. Their names, code, models, documentation, and trademarks
+remain subject to their respective owners' licenses and terms.
 
 Each lesson should:
 
@@ -79,4 +79,3 @@ No open-source license has been selected at this stage. This originality and
 attribution statement records authorship and provenance; it is not itself a
 license and does not grant reuse rights. Until a license is added, the repository
 remains all rights reserved.
-

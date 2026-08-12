@@ -1,0 +1,32 @@
+{
+  "lesson": 6,
+  "title": "Installing a Reproducible vLLM Environment",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260818
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "vllm_version": "0.27.1",
+    "python": "3.12.3",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "cli_path": "vllm",
+    "cli_found": true,
+    "serve_command": true,
+    "bench_command": true,
+    "cli_tokens": {
+      "serve": true,
+      "bench": true
+    },
+    "cuda_checksum": 0.3525652289390564
+  },
+  "analysis": "The isolated environment imported vLLM 0.27.1 with PyTorch 2.13.0+cu130 / CUDA 13.0, found serve/bench=True/True, and completed a CUDA checksum of 0.352565. Native model generation is the stronger final link.",
+  "conclusion": "Compatibility is a chain of executable checks; this probe establishes the local stack identity and CUDA path, not every model feature."
+}

@@ -1,0 +1,7 @@
+# Pinned Chapter 03 userspace. Install in a fresh Linux CUDA environment.
+vllm==0.27.1
+nbclient
+nbformat
+ipykernel
+requests
+pyyaml

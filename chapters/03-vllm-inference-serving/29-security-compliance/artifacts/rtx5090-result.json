@@ -1,0 +1,81 @@
+{
+  "lesson": 29,
+  "title": "Security and Compliance Boundaries",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260841
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "url_cases": 7,
+    "url_decisions_correct": 7,
+    "decisions": [
+      {
+        "url": "https://public.example/image.png",
+        "expected": true,
+        "actual": true
+      },
+      {
+        "url": "http://private.example/a",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "url": "http://metadata.example/latest",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "url": "http://localhost.example/a",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "url": "file:///etc/passwd",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "url": "gopher://public.example/x",
+        "expected": false,
+        "actual": false
+      },
+      {
+        "url": "http://v6local.example/x",
+        "expected": false,
+        "actual": false
+      }
+    ],
+    "private_blocked": true,
+    "link_local_blocked": true,
+    "policy": {
+      "api_keys_in_secret_store": true,
+      "full_prompt_metric_labels": false,
+      "prompt_log_retention_days": 7,
+      "deletion_workflow": true,
+      "trust_remote_code": false,
+      "model_license_reviewed": true,
+      "redirect_revalidation": true
+    },
+    "policy_checks": {
+      "secret_store": true,
+      "no_prompt_labels": true,
+      "bounded_retention": true,
+      "deletion": true,
+      "remote_code_disabled": true,
+      "license_review": true,
+      "redirect_revalidation": true
+    },
+    "policy_checks_passed": 7,
+    "policy_checks_total": 7,
+    "release_blockers": 0
+  },
+  "analysis": "The SSRF policy classified 7/7 fixtures and passed 7/7 data/supply-chain checks, leaving 0 blockers. Real DNS/redirect tests remain required.",
+  "conclusion": "Authenticated inference still needs strict input, supply-chain, and data-lifecycle controls; the lab verifies policy logic, not legal compliance."
+}

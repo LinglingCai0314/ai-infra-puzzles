@@ -1,0 +1,76 @@
+{
+  "lesson": 30,
+  "title": "From PoC to Canary: The Production Launch Gate",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260842
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "required_artifacts": 8,
+    "artifacts_present": 8,
+    "artifact_hashes": 8,
+    "evidence": {
+      "6": {
+        "path": "06-installation-compatibility/artifacts/rtx5090-result.json",
+        "sha256": "fa8b0c16b597cc8c180782a2e72cc48b6e04c51206d88814d169df071cea66f0"
+      },
+      "7": {
+        "path": "07-offline-llm-api/artifacts/rtx5090-result.json",
+        "sha256": "b47a8fe19ef8410483ff12306343fc33a0298ceb5a16a0b6cf06bda0df44ac92"
+      },
+      "8": {
+        "path": "08-openai-compatible-service/artifacts/rtx5090-result.json",
+        "sha256": "bb958269675df0db0a604538b45bfce0bdaf8f9067850c4a9f81f2f85aa8c4ee"
+      },
+      "10": {
+        "path": "10-model-loading-provenance/artifacts/rtx5090-result.json",
+        "sha256": "7d5468d1356488df4ff5ba493c3a0ab39926ddf894a883db70a13e6d052711d0"
+      },
+      "20": {
+        "path": "20-benchmarking-workloads/artifacts/rtx5090-result.json",
+        "sha256": "cc83a7fe80d5ff8cad63a1277095df4679847fd11615d7bf9efea84c875752b2"
+      },
+      "21": {
+        "path": "21-production-metrics/artifacts/rtx5090-result.json",
+        "sha256": "69eb2a6053a101fa61cade5a5d10f98366b985fb448430b5b5fabeaa5490faf1"
+      },
+      "25": {
+        "path": "25-reliability-debugging/artifacts/rtx5090-result.json",
+        "sha256": "74e012ad17da6d5b90c9a78bdc8ce629a9b68a5238386e8019d0e62a47ec0067"
+      },
+      "29": {
+        "path": "29-security-compliance/artifacts/rtx5090-result.json",
+        "sha256": "e21366737e5fa57fa68137e31aa7565f98f17e0fe7c57ac2362e3f6bc0b769fa"
+      }
+    },
+    "checks": {
+      "environment": true,
+      "offline_generation": true,
+      "http_contract": true,
+      "provenance": true,
+      "benchmark": true,
+      "observability": true,
+      "diagnostics": true,
+      "security": true,
+      "rollback_rehearsed": false
+    },
+    "gates_passed": 8,
+    "gates_total": 9,
+    "final_stage": "blocked_before_promote",
+    "release_ready": false,
+    "blockers": 1,
+    "blocker_names": [
+      "rollback_rehearsed"
+    ],
+    "release_id": "24b7a13672ef0145"
+  },
+  "analysis": "The manifest found 8/8 artifacts with 8 hashes and passed 8/9 gates. Final stage=blocked_before_promote, release_ready=False; intentional rollback rehearsal prevents lab-only promotion.",
+  "conclusion": "A reversible release is the conjunction of independent evidence gates; any missing required artifact correctly leaves the candidate blocked."
+}

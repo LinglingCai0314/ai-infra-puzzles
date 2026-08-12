@@ -1,0 +1,111 @@
+{
+  "lesson": 23,
+  "title": "Kubernetes GPU Scheduling and Rollouts",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260835
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "checks": {
+      "gpu_request_limit_match": true,
+      "startup_probe": true,
+      "readiness_probe": true,
+      "liveness_probe": true,
+      "termination_grace": true,
+      "anti_affinity": true,
+      "image_digest": true,
+      "rollout_capacity": true
+    },
+    "checks_passed": 8,
+    "checks_total": 8,
+    "capacity": {
+      "steady_gpus": 2,
+      "rollout_gpus": 3,
+      "cluster_gpus": 3,
+      "feasible": true
+    },
+    "startup_probe": true,
+    "manifest": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "metadata": {
+        "name": "vllm-qwen"
+      },
+      "spec": {
+        "replicas": 2,
+        "strategy": {
+          "type": "RollingUpdate",
+          "rollingUpdate": {
+            "maxSurge": 1,
+            "maxUnavailable": 0
+          }
+        },
+        "template": {
+          "metadata": {
+            "labels": {
+              "app": "vllm-qwen"
+            }
+          },
+          "spec": {
+            "terminationGracePeriodSeconds": 120,
+            "affinity": {
+              "podAntiAffinity": {
+                "preferredDuringSchedulingIgnoredDuringExecution": [
+                  {
+                    "weight": 100
+                  }
+                ]
+              }
+            },
+            "containers": [
+              {
+                "name": "server",
+                "image": "vllm/vllm-openai@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "resources": {
+                  "requests": {
+                    "nvidia.com/gpu": 1
+                  },
+                  "limits": {
+                    "nvidia.com/gpu": 1
+                  }
+                },
+                "startupProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 8000
+                  },
+                  "failureThreshold": 60,
+                  "periodSeconds": 5
+                },
+                "readinessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 8000
+                  },
+                  "periodSeconds": 5
+                },
+                "livenessProbe": {
+                  "httpGet": {
+                    "path": "/health",
+                    "port": 8000
+                  },
+                  "periodSeconds": 15
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "native_cluster_executed": false
+  },
+  "analysis": "The manifest passed 8/8 checks. Steady/surge capacity is 2/3 of 3 declared GPUs. This is configuration feasibility, not a cluster rollout.",
+  "conclusion": "The manifest audit establishes scheduling and rollout intent; Kubernetes availability remains unmeasured until a real cluster test."
+}

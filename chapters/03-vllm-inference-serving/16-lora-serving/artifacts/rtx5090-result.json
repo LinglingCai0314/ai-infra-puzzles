@@ -1,0 +1,34 @@
+{
+  "lesson": 16,
+  "title": "Serving LoRA Adapters",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "vllm": "0.27.1",
+    "model_path": "Qwen2.5-1.5B-Instruct",
+    "seed": 20260828
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "rank": 16,
+    "target_matrices_per_layer": 7,
+    "estimated_adapter_parameters": 19611648,
+    "estimated_adapter_bytes": 39223296,
+    "base_weight_bytes": 3087467144,
+    "adapter_to_base_ratio": 0.012704036729985685,
+    "api": {
+      "lora_request": true
+    },
+    "cli": {
+      "enable_lora": false,
+      "max_lora_rank": false,
+      "max_loras": false
+    },
+    "native_adapter_executed": false
+  },
+  "analysis": "The rank-16 seven-projection estimate is 39,223,296 BF16 bytes (1.27% of weights); request API/enable flag=True/False. No trained adapter behavior was fabricated.",
+  "conclusion": "The low-rank ledger explains why adapters are small; native behavioral and performance claims remain pending without a real adapter artifact."
+}
