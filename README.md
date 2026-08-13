@@ -25,6 +25,7 @@
   <img src="https://img.shields.io/badge/Chapter_01-30_Labs-6C63FF" alt="Chapter 01 has 30 labs">
   <img src="https://img.shields.io/badge/Chapter_02-28_Labs-00A6A6" alt="Chapter 02 has 28 labs">
   <img src="https://img.shields.io/badge/Chapter_03-30_Labs-F59E0B" alt="Chapter 03 has 30 labs">
+  <img src="https://img.shields.io/badge/Chapter_04-17_Labs-2563EB" alt="Chapter 04 has 17 labs">
 </p>
 
 ## What is AI Infra Puzzles?
@@ -126,6 +127,22 @@ Prefill/Decode measurements.
 See the [complete 30-lesson map](chapters/03-vllm-inference-serving/README.md) or begin
 with [Lesson 01 — The Inference Service Bottleneck](chapters/03-vllm-inference-serving/01-inference-service-bottleneck/README.md).
 
+## Continue with Chapter 04
+
+### [GPU Hardware Foundations: From CMOS to Attention](chapters/04-gpu-hardware-foundations/README.md)
+
+Chapter 04 connects transistor and memory-cell intuition to CUDA performance. Its 17
+lessons trace data through external memory, controllers, L2 slices, the on-chip network,
+SM storage, and execution units before measuring Roofline behavior, attention IO,
+coalescing, atomics, reductions, and asynchronous timing.
+
+The chapter preserves the complete visual set from Linnea Cai's GPU hardware study notes
+and pairs every theory topic with executable code. Numerical circuit and queue models are
+kept separate from native PyTorch/CUDA measurements on the RTX 5090.
+
+See the [complete 17-lesson map](chapters/04-gpu-hardware-foundations/README.md) or begin
+with [Lesson 01 — CMOS Switching, State, and Dynamic Power](chapters/04-gpu-hardware-foundations/01-cmos-switching-dynamic-power/README.md).
+
 ## Quick Start
 
 ### Run the executed GPU notebook
@@ -175,6 +192,16 @@ python3 scripts/validate_chapter.py 03
 python3 scripts/audit_chapter03_delivery.py
 ```
 
+To execute and validate the GPU hardware foundations labs:
+
+```bash
+python3 -m pip install -r requirements-gpu-foundations.txt
+python3 scripts/execute_chapter_notebooks.py --chapter 04 --start 1 --end 17
+python3 scripts/build_chapter04_lessons.py --chapter-readme
+python3 scripts/validate_chapter.py 04
+python3 scripts/audit_chapter04_delivery.py
+```
+
 ### Command-line alternative
 
 #### Prerequisites
@@ -217,8 +244,8 @@ Predict → Run → Inspect → Explain
   reverse.
 
 Only completed lessons with runnable code and inspectable evidence are linked.
-Chapters 01, 02, and 03 publish 30, 28, and 30 labs respectively; all retain outputs
-from their recorded RTX 5090 environments.
+Chapters 01, 02, 03, and 04 publish 30, 28, 30, and 17 labs respectively; all retain
+outputs from their recorded RTX 5090 environments.
 
 ```text
 ai-infra-puzzles/
@@ -245,9 +272,16 @@ ai-infra-puzzles/
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/
-│   └── 03-vllm-inference-serving/
+│   ├── 03-vllm-inference-serving/
 │       ├── README.md       # 30-lesson chapter map
 │       └── 01-... through 30-.../
+│           ├── README.md
+│           ├── lab.ipynb
+│           └── artifacts/
+│   └── 04-gpu-hardware-foundations/
+│       ├── README.md       # 17-lesson chapter map and visual atlas
+│       ├── assets/         # Conceptual diagrams, interactive HTML, and printable PDFs
+│       └── 01-... through 17-.../
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/

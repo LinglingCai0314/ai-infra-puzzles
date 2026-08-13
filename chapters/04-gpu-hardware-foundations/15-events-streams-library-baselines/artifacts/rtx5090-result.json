@@ -1,0 +1,72 @@
+{
+  "lesson": 15,
+  "title": "CUDA Events, Streams, and Library Baselines",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260828
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "shape": [
+      4096,
+      4096,
+      4096
+    ],
+    "dtype": "bfloat16",
+    "host_enqueue_us": 7.324386388063431,
+    "event_median_ms": 0.6385599970817566,
+    "timing_illusion_ratio": 87.18272948057728,
+    "library_tflops": 215.23263921965238,
+    "host_samples_us": [
+      17.556827515363693,
+      8.96211713552475,
+      8.39773565530777,
+      7.014255970716476,
+      8.409842848777771,
+      7.152091711759567,
+      7.884111255407333,
+      7.24010169506073,
+      7.537193596363068,
+      6.766989827156067,
+      7.370021194219589,
+      6.9229863584041595,
+      7.565133273601532,
+      6.753019988536835,
+      7.481314241886139,
+      6.744172424077988,
+      7.535796612501144,
+      6.639864295721054,
+      7.278751581907272,
+      6.676185876131058
+    ],
+    "event_samples_ms": [
+      0.6455360054969788,
+      0.6407679915428162,
+      0.6376960277557373,
+      0.6370880007743835,
+      0.6345279812812805,
+      0.6361920237541199,
+      0.6379839777946472,
+      0.6398400068283081,
+      0.6372159719467163,
+      0.6386240124702454,
+      0.6386240124702454,
+      0.6376000046730042,
+      0.6376960277557373,
+      0.6387519836425781,
+      0.6389439702033997,
+      0.6408320069313049,
+      0.6398079991340637,
+      0.6384959816932678,
+      0.6377599835395813,
+      0.6402559876441956
+    ],
+    "checksum": 1.413891077041626
+  },
+  "analysis": "Unsynchronized host enqueue took 7.32 µs while CUDA events measured 0.639 ms of device work, a 87.2x unit-normalized gap. Host end-to-end timing remains valid when synchronized.",
+  "conclusion": "Use CUDA events or profiler timelines for device latency and keep host/service latency as a separately named metric."
+}

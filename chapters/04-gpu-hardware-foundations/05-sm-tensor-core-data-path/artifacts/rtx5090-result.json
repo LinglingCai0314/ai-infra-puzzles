@@ -1,0 +1,87 @@
+{
+  "lesson": 5,
+  "title": "Feeding the SM and Tensor Cores",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260818
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "compute_capability": "12.0",
+    "aligned": {
+      "shape": [
+        2048,
+        2048,
+        2048
+      ],
+      "median_ms": 0.10390400141477585,
+      "tflops": 165.3436725253673,
+      "samples_ms": [
+        0.11264000087976456,
+        0.106175996363163,
+        0.10540799796581268,
+        0.1032319962978363,
+        0.1043199971318245,
+        0.10291200131177902,
+        0.10460799932479858,
+        0.10300800204277039,
+        0.10400000214576721,
+        0.1037760004401207,
+        0.10387200117111206,
+        0.10393600165843964,
+        0.10387200117111206,
+        0.10419200360774994,
+        0.10345599800348282,
+        0.1032319962978363,
+        0.10400000214576721,
+        0.10374400019645691,
+        0.1032319962978363,
+        0.10400000214576721
+      ],
+      "checksum": 0.042515262961387634
+    },
+    "awkward": {
+      "shape": [
+        2039,
+        2053,
+        2041
+      ],
+      "median_ms": 0.17475200444459915,
+      "tflops": 97.7815707940402,
+      "samples_ms": [
+        0.1847359985113144,
+        0.17759999632835388,
+        0.1746239960193634,
+        0.17440000176429749,
+        0.1944960057735443,
+        0.1764799952507019,
+        0.175135999917984,
+        0.1748799979686737,
+        0.17455999553203583,
+        0.17603200674057007,
+        0.17548799514770508,
+        0.17452800273895264,
+        0.1746560037136078,
+        0.17484800517559052,
+        0.17561599612236023,
+        0.1745920032262802,
+        0.1736000031232834,
+        0.1740799993276596,
+        0.17375999689102173,
+        0.1743679940700531
+      ],
+      "checksum": 0.005118758883327246
+    },
+    "aligned_median_ms": 0.10390400141477585,
+    "awkward_median_ms": 0.17475200444459915,
+    "aligned_tflops": 165.3436725253673,
+    "awkward_tflops": 97.7815707940402,
+    "throughput_ratio": 1.6909492369849004
+  },
+  "analysis": "The aligned and awkward BF16 shapes reached 165.3 and 97.8 TFLOP/s. This establishes a library-shape effect on this stack; it does not identify internal instructions without a profiler trace.",
+  "conclusion": "Treat alignment as a measured performance variable and preserve the full shape/dtype/backend identity with every result."
+}

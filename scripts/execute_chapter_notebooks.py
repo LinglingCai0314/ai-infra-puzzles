@@ -64,6 +64,11 @@ def main() -> int:
 
         sanitize_execution_records()
         build_chapter(refresh_chapter_readme=False)
+    elif args.chapter == "04":
+        # Refresh the bilingual result tables while retaining reviewed code outputs.
+        from build_chapter04_lessons import build_chapter
+
+        build_chapter(refresh_chapter_readme=False)
     print(f"Executed {len(notebooks)} notebooks successfully")
     return 0
 

@@ -1,0 +1,32 @@
+{
+  "lesson": 12,
+  "title": "CUDA Execution: Grid, Block, Warp, and Divergence",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260825
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "problem_size": 1000,
+    "block_size": 256,
+    "warp_size": 32,
+    "grid_blocks": 4,
+    "tail_active_threads": 232,
+    "patterns": {
+      "uniform": 1.0,
+      "half_warp": 0.5,
+      "alternating": 0.5
+    },
+    "active_masks_hex": {
+      "uniform": "0xffffffff",
+      "half_warp": "0xffff",
+      "alternating": "0x55555555"
+    }
+  },
+  "analysis": "The launch needs 4 blocks and the final block has 232 active threads. Under the explicit equal-cost two-path model, uniform efficiency is 100.0% and both mixed patterns are 50.0%; compiler behavior is not modeled.",
+  "conclusion": "Use the SIMT model to spot risky control flow, then inspect generated code and native timing before rewriting a readable branch."
+}

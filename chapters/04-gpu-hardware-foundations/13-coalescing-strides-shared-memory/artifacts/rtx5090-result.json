@@ -1,0 +1,79 @@
+{
+  "lesson": 13,
+  "title": "Coalescing, Strides, and Shared-Memory Staging",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260826
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "shape": [
+      8192,
+      8192
+    ],
+    "base_stride": [
+      8192,
+      1
+    ],
+    "transposed_stride": [
+      1,
+      8192
+    ],
+    "contiguous_median_ms": 0.35391999781131744,
+    "transposed_median_ms": 0.6519840061664581,
+    "contiguous_gbps": 1516.927314986642,
+    "transposed_gbps": 823.4418435456703,
+    "transposed_slowdown": 1.8421790523236983,
+    "output_equivalent": true,
+    "contiguous_samples_ms": [
+      0.35628798604011536,
+      0.3569599986076355,
+      0.35411199927330017,
+      0.35468798875808716,
+      0.3537279963493347,
+      0.3547520041465759,
+      0.35446399450302124,
+      0.3521279990673065,
+      0.3542720079421997,
+      0.35519999265670776,
+      0.355103999376297,
+      0.3534719944000244,
+      0.3572799861431122,
+      0.3532800078392029,
+      0.3534719944000244,
+      0.35369598865509033,
+      0.35369598865509033,
+      0.3529919981956482,
+      0.3537279963493347,
+      0.35343998670578003
+    ],
+    "transposed_samples_ms": [
+      0.669439971446991,
+      0.6566720008850098,
+      0.6520320177078247,
+      0.6523839831352234,
+      0.6516799926757812,
+      0.6529600024223328,
+      0.6529279947280884,
+      0.6515200138092041,
+      0.6521919965744019,
+      0.6536960005760193,
+      0.6511679887771606,
+      0.6529920101165771,
+      0.6513599753379822,
+      0.6514880061149597,
+      0.6509760022163391,
+      0.651423990726471,
+      0.650879979133606,
+      0.6519359946250916,
+      0.6535040140151978,
+      0.6506239771842957
+    ]
+  },
+  "analysis": "The contiguous and transposed views requested the same logical bytes, but their strides were (8192, 1) and (1, 8192); copy latency changed by 1.842x. Physical transaction counters were not collected.",
+  "conclusion": "Fix global access order before adding arithmetic micro-optimizations; introduce shared memory only with an explicit reuse or reordering purpose."
+}

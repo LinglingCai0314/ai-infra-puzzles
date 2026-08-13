@@ -1,0 +1,53 @@
+{
+  "lesson": 7,
+  "title": "From DRAM Cells to HBM Packaging",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260820
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "memory_technology": "GDDR7",
+    "interface_bits": 512,
+    "pin_rate_gbps": 28.0,
+    "theoretical_gbps": 1792.0,
+    "tensor_mib": 256.0,
+    "copy_median_ms": 0.3529599905014038,
+    "effective_copy_gbps": 1521.0531687666303,
+    "achieved_fraction": 0.8488019914992356,
+    "samples_ms": [
+      0.36585599184036255,
+      0.3553920090198517,
+      0.3516480028629303,
+      0.3521920144557953,
+      0.3533119857311249,
+      0.3543359935283661,
+      0.3517119884490967,
+      0.3550719916820526,
+      0.35385599732398987,
+      0.35305601358413696,
+      0.3526400029659271,
+      0.3527680039405823,
+      0.35315200686454773,
+      0.3564159870147705,
+      0.35516801476478577,
+      0.3529599905014038,
+      0.3537920117378235,
+      0.35257598757743835,
+      0.35225600004196167,
+      0.35280001163482666,
+      0.3528960049152374,
+      0.3548479974269867,
+      0.3518719971179962,
+      0.3527359962463379,
+      0.35180801153182983
+    ],
+    "checksum": -15.691978454589844
+  },
+  "analysis": "A 512-bit interface at 28 Gb/s per pin yields 1792 GB/s. The device-copy probe reported 1521.1 requested GB/s (84.9% of that interface number) on the GDDR7 RTX 5090.",
+  "conclusion": "Use the wide-interface equation for a ceiling and a controlled benchmark for achieved bandwidth; always name the memory technology and traffic convention."
+}

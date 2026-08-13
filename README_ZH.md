@@ -12,7 +12,7 @@
 
 <p align="center"> <a href="#what-is-ai-infra-puzzles"><strong>概览</strong></a> · <a href="#start-with-chapter-01"><strong>从这里开始</strong></a> · <a href="#quick-start"><strong>快速开始</strong></a> · <a href="#how-this-repository-works"><strong>它是如何工作的</strong></a> · <a href="README.md"><strong>English</strong></a> </p>
 
-<p align="center"> <img src="https://img.shields.io/badge/Original_Work-Linnea_Cai-8A2BE2" alt="Original work by Linnea Cai"> <img src="https://img.shields.io/badge/RTX_5090-verified-76B900" alt="Verified on RTX 5090"> <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12"> <img src="https://img.shields.io/badge/Chapter_01-30_Labs-6C63FF" alt="Chapter 01 has 30 labs"> <img src="https://img.shields.io/badge/Chapter_02-28_Labs-00A6A6" alt="Chapter 02 has 28 labs"> <img src="https://img.shields.io/badge/Chapter_03-30_Labs-F59E0B" alt="Chapter 03 has 30 labs"> </p>
+<p align="center"> <img src="https://img.shields.io/badge/Original_Work-Linnea_Cai-8A2BE2" alt="Original work by Linnea Cai"> <img src="https://img.shields.io/badge/RTX_5090-verified-76B900" alt="Verified on RTX 5090"> <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12"> <img src="https://img.shields.io/badge/Chapter_01-30_Labs-6C63FF" alt="Chapter 01 has 30 labs"> <img src="https://img.shields.io/badge/Chapter_02-28_Labs-00A6A6" alt="Chapter 02 has 28 labs"> <img src="https://img.shields.io/badge/Chapter_03-30_Labs-F59E0B" alt="Chapter 03 has 30 labs"> <img src="https://img.shields.io/badge/Chapter_04-17_Labs-2563EB" alt="Chapter 04 has 17 labs"> </p>
 
 ## <a id="what-is-ai-infra-puzzles"></a>什么是 AI Infra Puzzles？
 
@@ -72,6 +72,21 @@
 
 查看[完整的 30 课章节导航](chapters-zh/03-vllm-inference-serving/README.md)，或从[第 01 课 — 推理服务瓶颈](chapters-zh/03-vllm-inference-serving/01-inference-service-bottleneck/README.md)开始。
 
+## 继续学习第 04 章
+
+### [GPU 底层原理：从 CMOS 到 Attention](chapters-zh/04-gpu-hardware-foundations/README.md)
+
+第 04 章把晶体管与存储单元直觉连接到 CUDA 性能。17 课沿着外部显存、memory
+controller、L2 slice、NoC、SM 存储与执行单元追踪数据，随后用 Roofline、Attention
+IO、合并访存、atomic、reduction 和异步计时实验检验这些机制。
+
+本章完整使用 Linnea Cai 的 GPU 底层原理学习笔记中的视觉素材，并为每个理论主题
+设计了可执行代码。电路与排队数值模型和 RTX 5090 上的原生 PyTorch/CUDA 测量会
+明确分开，不用模型数字冒充硬件跑分。
+
+查看[完整的 17 课章节导航](chapters-zh/04-gpu-hardware-foundations/README.md)，或从
+[第 01 课 — CMOS 开关、状态与动态功耗](chapters-zh/04-gpu-hardware-foundations/01-cmos-switching-dynamic-power/README.md)开始。
+
 ## <a id="quick-start"></a>快速开始
 
 ### 运行包含实测输出的 GPU Notebook
@@ -118,6 +133,16 @@ python3 scripts/validate_chapter.py 03
 python3 scripts/audit_chapter03_delivery.py
 ```
 
+执行并验证第 04 章的 GPU 底层原理实验：
+
+```bash
+python3 -m pip install -r requirements-gpu-foundations.txt
+python3 scripts/execute_chapter_notebooks.py --chapter 04 --start 1 --end 17
+python3 scripts/build_chapter04_lessons.py --chapter-readme
+python3 scripts/validate_chapter.py 04
+python3 scripts/audit_chapter04_delivery.py
+```
+
 ### 命令行方式
 
 #### 先决条件
@@ -156,7 +181,7 @@ Predict → Run → Inspect → Explain
 - **检查：**检查内存、latency、输出行为和实际调度的 kernel。
 - **解释：**给出有边界的结论，并说明什么条件会使结论反转。
 
-只有已经包含可运行代码和可检查证据的完整课程才会被链接。第 01、02、03 章分别发布了 30、28、30 个实验；所有实验都保留了对应 RTX 5090 环境的运行输出。
+只有已经包含可运行代码和可检查证据的完整课程才会被链接。第 01、02、03、04 章分别发布了 30、28、30、17 个实验；所有实验都保留了对应 RTX 5090 环境的运行输出。
 
 ```text
 ai-infra-puzzles/
@@ -183,9 +208,16 @@ ai-infra-puzzles/
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/
-│   └── 03-vllm-inference-serving/
+│   ├── 03-vllm-inference-serving/
 │       ├── README.md       # 30-lesson chapter map
 │       └── 01-... through 30-.../
+│           ├── README.md
+│           ├── lab.ipynb
+│           └── artifacts/
+│   └── 04-gpu-hardware-foundations/
+│       ├── README.md       # 17 课导航与视觉资料入口
+│       ├── assets/         # 概念图、交互 HTML 与打印版 PDF
+│       └── 01-... through 17-.../
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/

@@ -1,0 +1,56 @@
+{
+  "lesson": 3,
+  "title": "GPU Memory as a Spatial Hierarchy",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260816
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "hierarchy": [
+      {
+        "level": "register",
+        "scope": "thread",
+        "technology": "flip-flop/register file",
+        "latency_ratio": 1
+      },
+      {
+        "level": "shared/L1",
+        "scope": "block/SM",
+        "technology": "SRAM",
+        "latency_ratio": 5
+      },
+      {
+        "level": "L2",
+        "scope": "all SMs",
+        "technology": "SRAM",
+        "latency_ratio": 25
+      },
+      {
+        "level": "external memory",
+        "scope": "device",
+        "technology": "GDDR7 on this GPU",
+        "latency_ratio": 120
+      }
+    ],
+    "working_set_bytes": 67108864,
+    "device_memory_gib": 31.35833740234375,
+    "bytes_per_use": {
+      "1": 67108864.0,
+      "2": 33554432.0,
+      "4": 16777216.0,
+      "8": 8388608.0,
+      "16": 4194304.0,
+      "32": 2097152.0
+    },
+    "bytes_per_use_streaming": 67108864,
+    "bytes_per_use_reuse32": 2097152,
+    "reuse32_reduction": 32.0
+  },
+  "analysis": "A 64 MiB working set costs 67,108,864 external bytes per use when streamed once, but 2,097,152 bytes per logical use when one load is amortized across 32 on-chip uses. Latency ratios are illustrative.",
+  "conclusion": "Optimize placement only after naming scope and reuse; 'faster memory' without a tile lifetime and sharing contract is incomplete."
+}

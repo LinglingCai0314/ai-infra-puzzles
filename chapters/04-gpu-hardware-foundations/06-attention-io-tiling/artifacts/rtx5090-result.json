@@ -1,0 +1,64 @@
+{
+  "lesson": 6,
+  "title": "Attention Acceleration Is an IO Problem",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260819
+  },
+  "evidence_label": "pytorch-gpu",
+  "metrics": {
+    "shape": [
+      1,
+      16,
+      1024,
+      64
+    ],
+    "dtype": "torch.bfloat16",
+    "score_tensor_mib": 32.0,
+    "eager_median_ms": 0.2258560061454773,
+    "sdpa_median_ms": 0.041439998894929886,
+    "eager_peak_mib": 160.0,
+    "sdpa_peak_mib": 2.0634765625,
+    "max_abs_error": 0.00390625,
+    "eager_samples_ms": [
+      0.24534399807453156,
+      0.23017600178718567,
+      0.22646400332450867,
+      0.22748799622058868,
+      0.2258560061454773,
+      0.22726400196552277,
+      0.2252800017595291,
+      0.2253119945526123,
+      0.22623999416828156,
+      0.22495999932289124,
+      0.22492800652980804,
+      0.2264000028371811,
+      0.22416000068187714,
+      0.22550399601459503,
+      0.22313599288463593
+    ],
+    "sdpa_samples_ms": [
+      0.04335999861359596,
+      0.04294399917125702,
+      0.0414079986512661,
+      0.042527999728918076,
+      0.041439998894929886,
+      0.04054399952292442,
+      0.041471999138593674,
+      0.04156799986958504,
+      0.04169600084424019,
+      0.04134399816393852,
+      0.04224000126123428,
+      0.04131200164556503,
+      0.04022400081157684,
+      0.04022400081157684,
+      0.04057599976658821
+    ]
+  },
+  "analysis": "The explicit score tensor is 32.0 MiB. Eager and SDPA medians were 0.226 and 0.041 ms, with 0.003906 maximum absolute output difference. Backend identity is not inferred.",
+  "conclusion": "Prefer the IO-aware route only when its numerical contract and supported shape are satisfied; fall back explicitly when backend or precision constraints reject it."
+}

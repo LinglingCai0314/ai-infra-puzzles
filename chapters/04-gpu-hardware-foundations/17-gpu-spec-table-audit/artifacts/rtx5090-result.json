@@ -1,0 +1,58 @@
+{
+  "lesson": 17,
+  "title": "Reading GPU Specification Tables Critically",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260830
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "official_snapshot": {
+      "source": "https://www.nvidia.com/en-us/geforce/graphics-cards/50-series/rtx-5090/",
+      "memory": {
+        "value": 32.0,
+        "unit": "GiB",
+        "technology": "GDDR7"
+      },
+      "interface": {
+        "value": 512.0,
+        "unit": "bit"
+      },
+      "pin_rate": {
+        "value": 28.0,
+        "unit": "Gb/s per pin",
+        "derived_from_bandwidth": true
+      },
+      "bandwidth": {
+        "value": 1792.0,
+        "unit": "GB/s"
+      },
+      "compute_capability": {
+        "value": "12.0",
+        "unit": "major.minor"
+      }
+    },
+    "device_memory_gib": 31.35833740234375,
+    "official_memory_gib": 32.0,
+    "capacity_difference_gib": -0.64166259765625,
+    "calculated_bandwidth_gbps": 1792.0,
+    "bandwidth_formula_error": 0.0,
+    "lesson07_achieved_fraction": 0.8488019914992356,
+    "fields_with_units": 5,
+    "illustrative_compute_roof_tflops": 100.0,
+    "roofline_tflops_by_intensity": {
+      "0.25": 0.448,
+      "1": 1.792,
+      "4": 7.168,
+      "16": 28.672,
+      "64": 100.0,
+      "256": 100.0
+    }
+  },
+  "analysis": "The width/rate formula reproduced 1792 GB/s with zero arithmetic error; the device reported 31.36 GiB and Lesson 07 achieved 84.9% of the interface figure. The compute roof in the table is explicitly illustrative.",
+  "conclusion": "Choose hardware from a workload sheet that combines capacity, arithmetic intensity, latency/throughput targets, supported software, and measured evidence."
+}

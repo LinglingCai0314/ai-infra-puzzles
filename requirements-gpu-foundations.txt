@@ -1,0 +1,4 @@
+torch
+nbclient
+nbformat
+ipykernel

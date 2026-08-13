@@ -57,6 +57,14 @@ This acknowledgment concerns the interactive learning approach. AI Infra
 Puzzles does not claim their text, code, branding, or puzzle solutions as
 original work.
 
+## Chapter 04 study visuals
+
+The diagrams, interactive HTML visualizations, and printable PDF variants under
+`chapters/04-gpu-hardware-foundations/assets/` come from Linnea Cai's personal GPU
+hardware study material and are used throughout Chapter 04 as conceptual teaching aids.
+They describe learning-level data paths and do not claim to reproduce the proprietary,
+die-accurate circuitry of a particular commercial GPU.
+
 ## Third-party technologies and materials
 
 Lessons may use or discuss third-party projects and products, including CUDA,

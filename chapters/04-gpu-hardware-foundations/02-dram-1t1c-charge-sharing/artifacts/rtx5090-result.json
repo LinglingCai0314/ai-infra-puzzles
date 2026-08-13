@@ -1,0 +1,38 @@
+{
+  "lesson": 2,
+  "title": "1T1C DRAM: Charge Sharing, Sensing, and Restore",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260815
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "vdd_v": 1.0,
+    "precharge_v": 0.5,
+    "cell_capacitance_f": 3e-14,
+    "fresh_margin_mv": 45.45454545454541,
+    "leaked_margin_mv": 20.000000000000018,
+    "margin_retained": 0.44000000000000083,
+    "restore_target_v": 1.0,
+    "bitline_ratio_sweep_margin_mv": {
+      "5": 83.33333333333337,
+      "10": 45.45454545454541,
+      "20": 23.809523809523835,
+      "40": 12.195121951219413,
+      "80": 6.172839506172867
+    },
+    "retention_sweep_margin_mv": {
+      "1.0": 45.45454545454541,
+      "0.9": 36.363636363636374,
+      "0.8": 27.272727272727227,
+      "0.72": 20.000000000000018,
+      "0.6": 9.090909090909038
+    }
+  },
+  "analysis": "With a 10:1 bitline/cell capacitance ratio, the ideal fresh-cell deviation was 45.455 mV and fell to 20.000 mV when retained cell voltage was 0.72 V. The sense amplifier and restore step are therefore part of the read contract.",
+  "conclusion": "Treat sensing margin as the bridge between capacitor physics and a reliable digital bit; restore and refresh are required parts of the storage contract."
+}

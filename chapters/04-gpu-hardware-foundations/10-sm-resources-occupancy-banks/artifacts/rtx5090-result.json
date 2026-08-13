@@ -1,0 +1,88 @@
+{
+  "lesson": 10,
+  "title": "SM Resources: Occupancy, Registers, and Banks",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260823
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "model_limits": {
+      "max_threads_sm": 2048,
+      "max_warps_sm": 64,
+      "max_blocks_sm": 16,
+      "registers_sm": 65536,
+      "shared_bytes_sm": 65536
+    },
+    "device_name": "NVIDIA GeForce RTX 5090",
+    "occupancy": {
+      "balanced": 1.0,
+      "register_heavy": 0.25,
+      "shared_heavy": 0.125
+    },
+    "occupancy_details": {
+      "balanced": {
+        "resident_blocks": 8,
+        "resident_warps": 64,
+        "occupancy": 1.0,
+        "limiting_resources": [
+          "threads",
+          "warps",
+          "registers",
+          "shared"
+        ],
+        "block_limits": {
+          "threads": 8,
+          "warps": 8,
+          "registers": 8,
+          "shared": 8,
+          "blocks": 16
+        }
+      },
+      "register_heavy": {
+        "resident_blocks": 2,
+        "resident_warps": 16,
+        "occupancy": 0.25,
+        "limiting_resources": [
+          "registers"
+        ],
+        "block_limits": {
+          "threads": 8,
+          "warps": 8,
+          "registers": 2,
+          "shared": 8,
+          "blocks": 16
+        }
+      },
+      "shared_heavy": {
+        "resident_blocks": 1,
+        "resident_warps": 8,
+        "occupancy": 0.125,
+        "limiting_resources": [
+          "shared"
+        ],
+        "block_limits": {
+          "threads": 8,
+          "warps": 8,
+          "registers": 8,
+          "shared": 1,
+          "blocks": 16
+        }
+      }
+    },
+    "bank_multiplicity": {
+      "stride_1": 1,
+      "stride_2": 2,
+      "stride_4": 4,
+      "stride_8": 8,
+      "stride_16": 16,
+      "stride_32": 32
+    }
+  },
+  "analysis": "Modeled occupancy was 100.0%, 25.0%, and 12.5%; stride 32 mapped all lanes to one illustrative bank (multiplicity 32).",
+  "conclusion": "Use occupancy and bank models to choose experiments, then accept an optimization only after native kernel timing and counters confirm the suspected limit."
+}

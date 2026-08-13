@@ -1,0 +1,42 @@
+{
+  "lesson": 1,
+  "title": "CMOS Switching, State, and Dynamic Power",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260814
+  },
+  "evidence_label": "numerical-model",
+  "metrics": {
+    "truth_table": {
+      "0": 1,
+      "1": 0
+    },
+    "capacitance_f": 8e-14,
+    "activity": 0.18,
+    "frequency_hz": 1000000000.0,
+    "energy_1v_fj": 80.0,
+    "energy_08v_fj": 51.20000000000001,
+    "voltage_energy_ratio": 1.5624999999999996,
+    "power_1v_mw": 0.014400000000000001,
+    "voltage_sweep_mw": {
+      "0.6": 0.005184,
+      "0.7": 0.007056,
+      "0.8": 0.009216000000000002,
+      "0.9": 0.011664000000000002,
+      "1.0": 0.014400000000000001
+    },
+    "activity_sweep_mw": {
+      "0.05": 0.004000000000000001,
+      "0.1": 0.008000000000000002,
+      "0.18": 0.014400000000000001,
+      "0.3": 0.023999999999999997,
+      "0.5": 0.04
+    }
+  },
+  "analysis": "At fixed C, activity, and frequency, lowering voltage from 1.0 V to 0.8 V reduced modeled transition energy from 80.0 to 51.2 fJ, a 1.562x ratio. This is a sensitivity model, not board-power telemetry.",
+  "conclusion": "Use `αCV²f` to reason about direction and sensitivity; use hardware telemetry and controlled workloads to measure an actual GPU."
+}

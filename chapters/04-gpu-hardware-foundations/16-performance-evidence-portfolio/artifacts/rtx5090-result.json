@@ -1,0 +1,155 @@
+{
+  "lesson": 16,
+  "title": "From Kernel Evidence to Inference Engineering",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "python": "3.12.3",
+    "seed": 20260829
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "artifacts_expected": 15,
+    "artifacts_found": 15,
+    "complete_artifacts": 15,
+    "completion_rate": 1.0,
+    "evidence_labels": [
+      "capacity-model",
+      "numerical-model",
+      "pytorch-gpu"
+    ],
+    "evidence_labels_represented": 3,
+    "layers": [
+      "hardware-model",
+      "kernel-measurement",
+      "systems-decision"
+    ],
+    "layers_represented": 3,
+    "records": [
+      {
+        "lesson": 1,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "numerical-model"
+      },
+      {
+        "lesson": 2,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "numerical-model"
+      },
+      {
+        "lesson": 3,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "capacity-model"
+      },
+      {
+        "lesson": 4,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      },
+      {
+        "lesson": 5,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      },
+      {
+        "lesson": 6,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      },
+      {
+        "lesson": 7,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      },
+      {
+        "lesson": 8,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      },
+      {
+        "lesson": 9,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "numerical-model"
+      },
+      {
+        "lesson": 10,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "capacity-model"
+      },
+      {
+        "lesson": 11,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      },
+      {
+        "lesson": 12,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "numerical-model"
+      },
+      {
+        "lesson": 13,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      },
+      {
+        "lesson": 14,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      },
+      {
+        "lesson": 15,
+        "found": true,
+        "complete": true,
+        "missing": [],
+        "environment_missing": [],
+        "evidence_label": "pytorch-gpu"
+      }
+    ]
+  },
+  "analysis": "The portfolio audit found 15/15 artifacts and 15/15 complete records, covering 3 evidence labels and 3 project layers. Schema completeness is necessary but does not validate experimental causality.",
+  "conclusion": "Present performance work as a chain from mechanism to reproducible evidence to a bounded system decision."
+}

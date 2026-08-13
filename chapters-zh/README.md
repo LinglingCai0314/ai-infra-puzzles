@@ -21,5 +21,6 @@
 | 第 01 章 — 混合精度与 INT4 量化 | 30 | [进入章节](01-mixed-precision-int4/README.md) |
 | 第 02 章 — 稀疏性与结构化剪枝 | 28 | [进入章节](02-sparsity-structured-pruning/README.md) |
 | 第 03 章 — vLLM 推理与服务 | 30 | [进入章节](03-vllm-inference-serving/README.md) |
+| 第 04 章 — GPU 底层原理：从 CMOS 到 Attention | 17 | [进入章节](04-gpu-hardware-foundations/README.md) |
 
 建议先阅读每课的谜题与预测，再运行对应 Notebook，最后对照仓库内保留的 RTX 5090 结果和证据边界。
