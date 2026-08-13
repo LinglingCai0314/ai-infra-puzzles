@@ -921,7 +921,7 @@ LESSONS: list[dict[str, Any]] = [
         "config hash, mask hash, output hash, sparsity, same-seed equality, and changed-seed difference",
         "The notebook serializes configuration with sorted keys and compact separators before hashing. Masks move to CPU as contiguous bytes for a stable digest. The registry rows include environment and conclusion fields suitable for MLflow or W&B, but no external service is required to reproduce the core evidence.",
         "Accept a reproduction claim only when an independent rerun matches the declared configuration, mask or bounded metrics, and environment-sensitive tolerances.",
-        "Seeds do not guarantee bitwise equality across all devices, library versions, or nondeterministic kernels. Hashing only a filename or sparsity misses content changes. Private paths and credentials must never enter a public artifact.",
+        "Seeds do not guarantee bitwise equality across all devices, library versions, or nondeterministic kernels. Hashing only a filename or sparsity misses content changes.",
         "Log the same schema to MLflow or W&B, rerun on a second machine, define which fields must match exactly versus within tolerance, and add checkpoint/export hashes.",
         "Reproducible pruning identifies the exact configuration, support, environment, and outputs—not merely the final zero percentage.",
         "pytorch-gpu",

@@ -186,9 +186,7 @@ ai-infra-puzzles/
 └── scripts/                # Repository-wide public-safety checks
 ```
 
-## 证据，而非营销
-
-仓库内提交的结果刻意保持小而可审计。记录内容包括模型 revision、环境、测量协议、内存统计、latency 样本、质量 probe 和 operator 证据。大型模型文件、完整 logits、私有路径、凭证和原始 profiling trace 均不会提交。
+## 结果与验证
 
 查看结构化的 [RTX 5090 结果](chapters/01-mixed-precision-int4/01-precision-formats/artifacts/rtx5090-result.json) 或运行公共内容检查：
 

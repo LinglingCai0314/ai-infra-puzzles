@@ -232,8 +232,6 @@ CH1_MODEL=/path/to/model CH1_LOCAL_FILES_ONLY=1 \
   ./chapters/01-mixed-precision-int4/01-precision-formats/support/run.sh
 ```
 
-运行时产物会被发送到忽略的`outputs/`目录。请勿提交模型权重、完整logits、未经净化的Profiler文件、凭证或私有路径。
-
 ## 证据边界
 
 - 紧凑的公共结果存储在[`artifacts/rtx5090-result.json`](../../../chapters/01-mixed-precision-int4/01-precision-formats/artifacts/rtx5090-result.json)中。

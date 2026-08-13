@@ -252,12 +252,7 @@ ai-infra-puzzles/
 └── scripts/                # Repository-wide public-safety checks
 ```
 
-## Evidence, not marketing
-
-The checked-in result is deliberately small and auditable. It records the model
-revision, environment, measurement protocol, memory accounting, latency samples,
-quality probe, and operator evidence. Large model files, full logits, private
-paths, credentials, and raw profiler traces are never committed.
+## Results and validation
 
 See the structured
 [RTX 5090 result](chapters/01-mixed-precision-int4/01-precision-formats/artifacts/rtx5090-result.json)

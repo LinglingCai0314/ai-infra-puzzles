@@ -110,7 +110,6 @@ configuration, mask or bounded metrics, and environment-sensitive tolerances.
 
 Seeds do not guarantee bitwise equality across all devices, library versions, or
 nondeterministic kernels. Hashing only a filename or sparsity misses content changes.
-Private paths and credentials must never enter a public artifact.
 
 ## Reproduce
 

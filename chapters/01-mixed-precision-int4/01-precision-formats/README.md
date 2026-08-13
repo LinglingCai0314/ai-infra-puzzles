@@ -262,9 +262,6 @@ CH1_MODEL=/path/to/model CH1_LOCAL_FILES_ONLY=1 \
   ./chapters/01-mixed-precision-int4/01-precision-formats/support/run.sh
 ```
 
-Runtime artifacts go to the ignored `outputs/` directory. Do not commit model
-weights, full logits, unsanitized profiler files, credentials, or private paths.
-
 ## Evidence boundary
 
 - The compact public result is stored in [`artifacts/rtx5090-result.json`](artifacts/rtx5090-result.json).
