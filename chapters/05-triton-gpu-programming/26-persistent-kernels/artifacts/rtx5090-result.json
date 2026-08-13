@@ -1,0 +1,73 @@
+{
+  "lesson": 26,
+  "title": "Persistent Scheduling and the TMA Boundary",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260839
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.021631999872624874,
+    "secondary": 0.020192000083625317,
+    "max_abs_error": 4.76837158203125e-07,
+    "passed": true,
+    "details": {
+      "persistent_programs": 256,
+      "standard_programs": 16384,
+      "persistent_samples_ms": [
+        0.028831999748945236,
+        0.025567999109625816,
+        0.021856000646948814,
+        0.0226879995316267,
+        0.020927999168634415,
+        0.022272000089287758,
+        0.020864000543951988,
+        0.02252800017595291,
+        0.021503999829292297,
+        0.022655999287962914,
+        0.020447999238967896,
+        0.021376000717282295,
+        0.02127999998629093,
+        0.02175999991595745,
+        0.020479999482631683,
+        0.02054399996995926,
+        0.0208320003002882,
+        0.020416000857949257,
+        0.024607999250292778,
+        0.021824000403285027
+      ],
+      "standard_samples_ms": [
+        0.0272000003606081,
+        0.02163200080394745,
+        0.021183999255299568,
+        0.020128000527620316,
+        0.021695999428629875,
+        0.02191999927163124,
+        0.019872000440955162,
+        0.020031999796628952,
+        0.020031999796628952,
+        0.019360000267624855,
+        0.020640000700950623,
+        0.01852799952030182,
+        0.020255999639630318,
+        0.018751999363303185,
+        0.020320000126957893,
+        0.018144000321626663,
+        0.020864000543951988,
+        0.01929599978029728,
+        0.020447999238967896,
+        0.01942400075495243
+      ],
+      "tma_used": false
+    }
+  },
+  "analysis_en": "Persistent scheduling reduced the grid from 16,384 to 256 programs and took 0.0216 ms versus 0.0202 ms for the standard grid. TMA was not used.",
+  "analysis_zh": "persistent 调度把 grid 从 16,384 个 program 降到 256 个，用时 0.0216 ms；标准 grid 为 0.0202 ms。本实验未使用 TMA。",
+  "conclusion": "Adopt persistence only when its scheduling benefit survives representative concurrency and shape tests."
+}

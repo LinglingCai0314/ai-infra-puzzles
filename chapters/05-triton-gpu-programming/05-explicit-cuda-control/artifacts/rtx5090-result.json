@@ -1,0 +1,51 @@
+{
+  "lesson": 5,
+  "title": "Explicit CUDA Control and Error Boundaries",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260818
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "primary": false,
+    "secondary": 0.021167999133467674,
+    "max_abs_error": 4.76837158203125e-07,
+    "passed": true,
+    "details": {
+      "cuda_source": "vector_affine.cu",
+      "cuda_compiled": false,
+      "reason": "nvcc unavailable",
+      "triton_samples_ms": [
+        0.03328000009059906,
+        0.026048000901937485,
+        0.02284800074994564,
+        0.022016000002622604,
+        0.02067199908196926,
+        0.023231999948620796,
+        0.022655999287962914,
+        0.022624000906944275,
+        0.02175999991595745,
+        0.021663999184966087,
+        0.020031999796628952,
+        0.022016000002622604,
+        0.020096000283956528,
+        0.020416000857949257,
+        0.02035200037062168,
+        0.019231999292969704,
+        0.01894400082528591,
+        0.01942400075495243,
+        0.019872000440955162,
+        0.020479999482631683
+      ]
+    }
+  },
+  "analysis_en": "The Triton path ran correctly in 0.0212 ms. nvcc availability was False, so the explicit CUDA source is reviewable but is not presented as a native measurement.",
+  "analysis_zh": "Triton 路径正确运行，用时 0.0212 ms。nvcc 可用性为 False，因此显式 CUDA 源码可审阅，但不冒充原生实测。",
+  "conclusion": "Use the explicit CUDA result only after the recorded Toolkit builds and runs it; until then it is a review artifact."
+}

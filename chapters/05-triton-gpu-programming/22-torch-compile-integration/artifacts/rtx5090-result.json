@@ -1,0 +1,62 @@
+{
+  "lesson": 22,
+  "title": "PyTorch Integration with torch.compile",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260835
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 1013.719717040658,
+    "secondary": 0.05571199953556061,
+    "max_abs_error": 1.7881393432617188e-07,
+    "passed": true,
+    "details": {
+      "eager_median_ms": 0.02611199952661991,
+      "compiled_samples_ms": [
+        0.06864000111818314,
+        0.06505600363016129,
+        0.0575999990105629,
+        0.05548800155520439,
+        0.05737600103020668,
+        0.06083200126886368,
+        0.05571199953556061,
+        0.05462399870157242,
+        0.05596800148487091,
+        0.05363199859857559,
+        0.053727999329566956,
+        0.05488000065088272,
+        0.054816000163555145,
+        0.07340800017118454,
+        0.05392000079154968
+      ],
+      "eager_samples_ms": [
+        0.03097599931061268,
+        0.026048000901937485,
+        0.024831999093294144,
+        0.026240000501275063,
+        0.032607998698949814,
+        0.026335999369621277,
+        0.024927999824285507,
+        0.024671999737620354,
+        0.026623999699950218,
+        0.02611199952661991,
+        0.026464000344276428,
+        0.02521600015461445,
+        0.026464000344276428,
+        0.02425600029528141,
+        0.025631999596953392
+      ],
+      "backend": "torch.compile/Inductor"
+    }
+  },
+  "analysis_en": "torch.compile cold execution took 1013.72 ms; its warm median was 0.0557 ms versus 0.0261 ms eager. Compile cost and steady state stay separate.",
+  "analysis_zh": "torch.compile 冷启动为 1013.72 ms；warm 中位数 0.0557 ms，eager 为 0.0261 ms。编译成本与稳态性能分开记录。",
+  "conclusion": "Try compiler fusion before owning a manual kernel when the graph is stable and generated performance meets the gate."
+}

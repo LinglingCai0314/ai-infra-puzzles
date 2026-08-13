@@ -1,0 +1,34 @@
+{
+  "lesson": 20,
+  "title": "Interpreter, Assertions, and Debugging Tools",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260833
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "primary": 4,
+    "secondary": false,
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "debug_operations": {
+        "static_print": true,
+        "static_assert": true,
+        "device_print": true,
+        "device_assert": true
+      },
+      "interpreter_enabled_for_this_gpu_run": false,
+      "note": "Interpreter is a separate CPU debugging mode, not a GPU performance mode"
+    }
+  },
+  "analysis_en": "All 4 documented debug operators were present. The retained GPU run validates the kernel; interpreter mode remains a separate CPU debugging workflow.",
+  "analysis_zh": "文档列出的 4 个调试操作均存在。当前保留的是 GPU 正确性运行；interpreter 是独立的 CPU 调试流程。",
+  "conclusion": "Use interpreter and assertions to localize errors, then rerun correctness and performance on the target GPU."
+}

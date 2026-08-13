@@ -1,0 +1,49 @@
+{
+  "lesson": 14,
+  "title": "Autotune Search and Experiment Budget",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260827
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 570.6414231099188,
+    "secondary": 0.033263999968767166,
+    "max_abs_error": 4.76837158203125e-07,
+    "passed": true,
+    "details": {
+      "configs": 3,
+      "warm_samples_ms": [
+        0.03734400123357773,
+        0.03731200098991394,
+        0.033376000821590424,
+        0.0331839993596077,
+        0.034015998244285583,
+        0.035360001027584076,
+        0.038816001266241074,
+        0.032896000891923904,
+        0.03510399907827377,
+        0.03359999880194664,
+        0.03136000037193298,
+        0.032127998769283295,
+        0.03222399950027466,
+        0.033344000577926636,
+        0.03254399821162224,
+        0.0315839983522892,
+        0.030527999624609947,
+        0.03283200040459633,
+        0.03177599981427193,
+        0.03340800106525421
+      ]
+    }
+  },
+  "analysis_en": "Three configurations were eligible. The first host call cost 570.64 ms, while the cached warm median was 0.0333 ms.",
+  "analysis_zh": "共有 3 个候选配置；首次主机调用为 570.64 ms，缓存后的 warm 中位数为 0.0333 ms。",
+  "conclusion": "Spend autotune budget only on dimensions that materially change the optimum and include search cost in deployment planning."
+}

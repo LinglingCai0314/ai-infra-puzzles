@@ -26,6 +26,7 @@
   <img src="https://img.shields.io/badge/Chapter_02-28_Labs-00A6A6" alt="Chapter 02 has 28 labs">
   <img src="https://img.shields.io/badge/Chapter_03-30_Labs-F59E0B" alt="Chapter 03 has 30 labs">
   <img src="https://img.shields.io/badge/Chapter_04-17_Labs-2563EB" alt="Chapter 04 has 17 labs">
+  <img src="https://img.shields.io/badge/Chapter_05-30_Labs-E34F26" alt="Chapter 05 has 30 labs">
 </p>
 
 ## What is AI Infra Puzzles?
@@ -143,6 +144,23 @@ kept separate from native PyTorch/CUDA measurements on the RTX 5090.
 See the [complete 17-lesson map](chapters/04-gpu-hardware-foundations/README.md) or begin
 with [Lesson 01 — CMOS Switching, State, and Dynamic Power](chapters/04-gpu-hardware-foundations/01-cmos-switching-dynamic-power/README.md).
 
+## Continue with Chapter 05
+
+### [Triton GPU Programming and CUDA Performance](chapters/05-triton-gpu-programming/README.md)
+
+Chapter 05 turns Triton's blocked programming model into 30 measured puzzles. It moves from
+tail-safe vector kernels, strides, masks, benchmark protocol, and Roofline reasoning through fused
+Softmax, reduction, GEMM, autotune, RMSNorm, attention, numerical stability, `torch.compile`, paged
+KV addressing, persistent scheduling, regression CI, and a gated deliverable kernel.
+
+The retained runs use Triton 3.7.1 on the RTX 5090. Triton kernels, PyTorch CUDA/library controls,
+compatibility probes, and decision models are labeled separately. The execution environment had no
+`nvcc`, so the explicit CUDA lesson retains reviewable source and reports that path as uncompiled
+instead of presenting an invented native comparison.
+
+See the [complete 30-lesson map](chapters/05-triton-gpu-programming/README.md) or begin with
+[Lesson 01 — Operator Boundaries and the Cost of Small Kernels](chapters/05-triton-gpu-programming/01-operator-boundaries/README.md).
+
 ## Quick Start
 
 ### Run the executed GPU notebook
@@ -202,6 +220,16 @@ python3 scripts/validate_chapter.py 04
 python3 scripts/audit_chapter04_delivery.py
 ```
 
+To execute and validate the Triton GPU programming labs:
+
+```bash
+python3 -m pip install -r requirements-triton.txt
+python3 scripts/execute_chapter_notebooks.py --chapter 05 --start 1 --end 30
+python3 scripts/build_chapter05_lessons.py --chapter-readme
+python3 scripts/validate_chapter.py 05
+python3 scripts/audit_chapter05_delivery.py
+```
+
 ### Command-line alternative
 
 #### Prerequisites
@@ -244,7 +272,7 @@ Predict → Run → Inspect → Explain
   reverse.
 
 Only completed lessons with runnable code and inspectable evidence are linked.
-Chapters 01, 02, 03, and 04 publish 30, 28, 30, and 17 labs respectively; all retain
+Chapters 01 through 05 publish 30, 28, 30, 17, and 30 labs respectively; all retain
 outputs from their recorded RTX 5090 environments.
 
 ```text
@@ -278,10 +306,16 @@ ai-infra-puzzles/
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/
-│   └── 04-gpu-hardware-foundations/
+│   ├── 04-gpu-hardware-foundations/
 │       ├── README.md       # 17-lesson chapter map and visual atlas
 │       ├── assets/         # Conceptual diagrams, interactive HTML, and printable PDFs
 │       └── 01-... through 17-.../
+│           ├── README.md
+│           ├── lab.ipynb
+│           └── artifacts/
+│   └── 05-triton-gpu-programming/
+│       ├── README.md       # 30-lesson Triton chapter map
+│       └── 01-... through 30-.../
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/

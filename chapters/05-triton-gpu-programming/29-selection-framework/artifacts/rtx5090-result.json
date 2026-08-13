@@ -1,0 +1,94 @@
+{
+  "lesson": 29,
+  "title": "A Triton-versus-CUDA Decision Framework",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260842
+  },
+  "evidence_label": "capacity-model",
+  "metrics": {
+    "primary": 1.1065643852670402,
+    "secondary": "triton",
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "decision_scores": {
+        "fused_pointwise": {
+          "triton": 5,
+          "cuda": 3,
+          "library": 2
+        },
+        "standard_gemm": {
+          "triton": 3,
+          "cuda": 4,
+          "library": 5
+        },
+        "architecture_specific_primitive": {
+          "triton": 2,
+          "cuda": 5,
+          "library": 4
+        }
+      },
+      "winners": {
+        "fused_pointwise": "triton",
+        "standard_gemm": "library",
+        "architecture_specific_primitive": "cuda"
+      },
+      "measured_triton_ms": 0.020767999812960625,
+      "measured_pytorch_ms": 0.01876799948513508,
+      "triton_samples_ms": [
+        0.031328000128269196,
+        0.023615999147295952,
+        0.022943999618291855,
+        0.02127999998629093,
+        0.02054399996995926,
+        0.02191999927163124,
+        0.021407999098300934,
+        0.021376000717282295,
+        0.021663999184966087,
+        0.020128000527620316,
+        0.020447999238967896,
+        0.020416000857949257,
+        0.021344000473618507,
+        0.02099199965596199,
+        0.01945599913597107,
+        0.02051199972629547,
+        0.019551999866962433,
+        0.0191040001809597,
+        0.018592000007629395,
+        0.019936000928282738
+      ],
+      "pytorch_samples_ms": [
+        0.01926399953663349,
+        0.019007999449968338,
+        0.018783999606966972,
+        0.018592000007629395,
+        0.019071999937295914,
+        0.0180479995906353,
+        0.01945599913597107,
+        0.018688000738620758,
+        0.01961600035429001,
+        0.018751999363303185,
+        0.018079999834299088,
+        0.018719999119639397,
+        0.019039999693632126,
+        0.018559999763965607,
+        0.01852799952030182,
+        0.017855999991297722,
+        0.01990400068461895,
+        0.018400000408291817,
+        0.01881599985063076,
+        0.018783999606966972
+      ]
+    }
+  },
+  "analysis_en": "The measured affine ratio was 1.107x, while the explicit decision matrix selected different tools for different constraints. No universal winner was encoded.",
+  "analysis_zh": "affine 实测比值为 1.107；显式决策矩阵在不同约束下选出不同工具，没有写入“万能赢家”。",
+  "conclusion": "Write the decision as constraints, expected benefit, rejected alternatives, and the evidence that would reopen it."
+}

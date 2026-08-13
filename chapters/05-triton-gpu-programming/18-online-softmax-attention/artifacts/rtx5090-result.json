@@ -1,0 +1,57 @@
+{
+  "lesson": 18,
+  "title": "Online Softmax and Fused Attention",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260831
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.026176000013947487,
+    "secondary": 0.07769599929451942,
+    "max_abs_error": 0.001953125,
+    "passed": true,
+    "details": {
+      "materialized_score_bytes": 8388608,
+      "sdpa_samples_ms": [
+        0.03686400130391121,
+        0.027424000203609467,
+        0.025696000084280968,
+        0.02598400041460991,
+        0.026176000013947487,
+        0.027424000203609467,
+        0.02691200003027916,
+        0.026079999282956123,
+        0.024992000311613083,
+        0.026399999856948853,
+        0.024960000067949295,
+        0.02579200081527233,
+        0.025887999683618546,
+        0.026623999699950218,
+        0.02687999978661537
+      ],
+      "eager_samples_ms": [
+        0.08684799820184708,
+        0.07913599908351898,
+        0.07625599950551987,
+        0.07321599870920181,
+        0.07276800274848938,
+        0.07267200201749802,
+        0.07327999919652939,
+        0.08534400165081024,
+        0.12624000012874603,
+        0.14787200093269348
+      ],
+      "backend_claim": "PyTorch SDPA; internal kernel not asserted"
+    }
+  },
+  "analysis_en": "PyTorch SDPA took 0.0262 ms versus 0.0777 ms for materialized eager attention. Avoiding a 8.0 MiB score tensor is the algorithmic boundary; the internal SDPA kernel is not named.",
+  "analysis_zh": "PyTorch SDPA 用时 0.0262 ms，显式物化 attention 为 0.0777 ms。算法边界是避免 8.0 MiB score tensor；不臆测 SDPA 内部 kernel 名称。",
+  "conclusion": "Use the materialization model to explain scaling, but name the internal backend only when profiler evidence identifies it."
+}

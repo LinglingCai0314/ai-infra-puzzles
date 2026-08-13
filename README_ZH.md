@@ -12,7 +12,7 @@
 
 <p align="center"> <a href="#what-is-ai-infra-puzzles"><strong>概览</strong></a> · <a href="#start-with-chapter-01"><strong>从这里开始</strong></a> · <a href="#quick-start"><strong>快速开始</strong></a> · <a href="#how-this-repository-works"><strong>它是如何工作的</strong></a> · <a href="README.md"><strong>English</strong></a> </p>
 
-<p align="center"> <img src="https://img.shields.io/badge/Original_Work-Linnea_Cai-8A2BE2" alt="Original work by Linnea Cai"> <img src="https://img.shields.io/badge/RTX_5090-verified-76B900" alt="Verified on RTX 5090"> <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12"> <img src="https://img.shields.io/badge/Chapter_01-30_Labs-6C63FF" alt="Chapter 01 has 30 labs"> <img src="https://img.shields.io/badge/Chapter_02-28_Labs-00A6A6" alt="Chapter 02 has 28 labs"> <img src="https://img.shields.io/badge/Chapter_03-30_Labs-F59E0B" alt="Chapter 03 has 30 labs"> <img src="https://img.shields.io/badge/Chapter_04-17_Labs-2563EB" alt="Chapter 04 has 17 labs"> </p>
+<p align="center"> <img src="https://img.shields.io/badge/Original_Work-Linnea_Cai-8A2BE2" alt="Original work by Linnea Cai"> <img src="https://img.shields.io/badge/RTX_5090-verified-76B900" alt="Verified on RTX 5090"> <img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python 3.12"> <img src="https://img.shields.io/badge/Chapter_01-30_Labs-6C63FF" alt="Chapter 01 has 30 labs"> <img src="https://img.shields.io/badge/Chapter_02-28_Labs-00A6A6" alt="Chapter 02 has 28 labs"> <img src="https://img.shields.io/badge/Chapter_03-30_Labs-F59E0B" alt="Chapter 03 has 30 labs"> <img src="https://img.shields.io/badge/Chapter_04-17_Labs-2563EB" alt="Chapter 04 has 17 labs"> <img src="https://img.shields.io/badge/Chapter_05-30_Labs-E34F26" alt="Chapter 05 has 30 labs"> </p>
 
 ## <a id="what-is-ai-infra-puzzles"></a>什么是 AI Infra Puzzles？
 
@@ -87,6 +87,22 @@ IO、合并访存、atomic、reduction 和异步计时实验检验这些机制�
 查看[完整的 17 课章节导航](chapters-zh/04-gpu-hardware-foundations/README.md)，或从
 [第 01 课 — CMOS 开关、状态与动态功耗](chapters-zh/04-gpu-hardware-foundations/01-cmos-switching-dynamic-power/README.md)开始。
 
+## 继续学习第 05 章
+
+### [Triton GPU 编程与 CUDA 性能对比](chapters-zh/05-triton-gpu-programming/README.md)
+
+第 05 章把 Triton blocked programming model 组织成 30 个实测 puzzle。课程从 tail-safe
+向量 kernel、stride、mask、benchmark 协议与 Roofline 出发，进入融合 Softmax、reduction、
+GEMM、autotune、RMSNorm、Attention、数值稳定性、`torch.compile`、paged KV 寻址、
+persistent 调度、性能回归 CI，最后交付带 gate 与 rollback 的自定义 kernel。
+
+保留结果使用 RTX 5090 与 Triton 3.7.1。Triton kernel、PyTorch CUDA/库函数 control、
+compatibility probe 与决策模型会分别标注。执行环境没有 `nvcc`，所以显式 CUDA 课保留
+可审阅源码，并诚实记录为未编译，不用虚构 latency 补齐表格。
+
+查看[完整的 30 课章节导航](chapters-zh/05-triton-gpu-programming/README.md)，或从
+[第 01 课 — 算子边界与小 kernel 的真实成本](chapters-zh/05-triton-gpu-programming/01-operator-boundaries/README.md)开始。
+
 ## <a id="quick-start"></a>快速开始
 
 ### 运行包含实测输出的 GPU Notebook
@@ -143,6 +159,16 @@ python3 scripts/validate_chapter.py 04
 python3 scripts/audit_chapter04_delivery.py
 ```
 
+执行并验证第 05 章的 Triton GPU 编程实验：
+
+```bash
+python3 -m pip install -r requirements-triton.txt
+python3 scripts/execute_chapter_notebooks.py --chapter 05 --start 1 --end 30
+python3 scripts/build_chapter05_lessons.py --chapter-readme
+python3 scripts/validate_chapter.py 05
+python3 scripts/audit_chapter05_delivery.py
+```
+
 ### 命令行方式
 
 #### 先决条件
@@ -181,7 +207,7 @@ Predict → Run → Inspect → Explain
 - **检查：**检查内存、latency、输出行为和实际调度的 kernel。
 - **解释：**给出有边界的结论，并说明什么条件会使结论反转。
 
-只有已经包含可运行代码和可检查证据的完整课程才会被链接。第 01、02、03、04 章分别发布了 30、28、30、17 个实验；所有实验都保留了对应 RTX 5090 环境的运行输出。
+只有已经包含可运行代码和可检查证据的完整课程才会被链接。第 01 至 05 章分别发布了 30、28、30、17、30 个实验；所有实验都保留了对应 RTX 5090 环境的运行输出。
 
 ```text
 ai-infra-puzzles/
@@ -214,10 +240,16 @@ ai-infra-puzzles/
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/
-│   └── 04-gpu-hardware-foundations/
+│   ├── 04-gpu-hardware-foundations/
 │       ├── README.md       # 17 课导航与视觉资料入口
 │       ├── assets/         # 概念图、交互 HTML 与打印版 PDF
 │       └── 01-... through 17-.../
+│           ├── README.md
+│           ├── lab.ipynb
+│           └── artifacts/
+│   └── 05-triton-gpu-programming/
+│       ├── README.md       # 30 课 Triton 章节导航
+│       └── 01-... through 30-.../
 │           ├── README.md
 │           ├── lab.ipynb
 │           └── artifacts/

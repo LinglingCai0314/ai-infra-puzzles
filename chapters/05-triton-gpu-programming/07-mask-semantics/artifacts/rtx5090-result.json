@@ -1,0 +1,28 @@
+{
+  "lesson": 7,
+  "title": "Masks and Reduction Identities",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260820
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.0,
+    "secondary": 1.0080831050872803,
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "corrupt_rows": 1024,
+      "tail": 24
+    }
+  },
+  "analysis_en": "Using -inf as the masked max identity produced 0.00e+00 error; padding with zero corrupted 1024 all-negative rows.",
+  "analysis_zh": "max reduction 的 mask 使用 -inf 时误差为 0.00e+00；错误地填 0 会破坏 1024 行全负输入。",
+  "conclusion": "Treat mask values as part of the mathematical specification, not as a memory-safety afterthought."
+}

@@ -1,0 +1,29 @@
+{
+  "lesson": 19,
+  "title": "Numerical Stability and Cast Boundaries",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260832
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 2096519,
+    "secondary": 0.00024390220642089844,
+    "max_abs_error": 0.00024390220642089844,
+    "passed": true,
+    "details": {
+      "stable_invalid": 0,
+      "input_min": -14.984375,
+      "input_max": 174.25
+    }
+  },
+  "analysis_en": "The unshifted FP16 expression produced 2,096,519 non-finite values. Max-shifted Triton softmax produced none and differed from FP32 reference by 2.439e-04.",
+  "analysis_zh": "未减最大值的 FP16 表达式产生 2,096,519 个非有限值；max-shift Triton softmax 没有非有限值，相对 FP32 参考最大误差 2.439e-04。",
+  "conclusion": "Gate optimized kernels with adversarial ranges, NaN/Inf counts, extrema, and a higher-precision reference."
+}

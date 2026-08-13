@@ -1,0 +1,75 @@
+{
+  "lesson": 1,
+  "title": "Operator Boundaries and the Cost of Small Kernels",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260814
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.02108799945563078,
+    "secondary": 0.018880000337958336,
+    "max_abs_error": 4.76837158203125e-07,
+    "passed": true,
+    "details": {
+      "triton_samples_ms": [
+        0.03097599931061268,
+        0.02409599907696247,
+        0.023391999304294586,
+        0.022272000089287758,
+        0.019840000197291374,
+        0.021568000316619873,
+        0.022495999932289124,
+        0.022463999688625336,
+        0.02067199908196926,
+        0.020927999168634415,
+        0.021247999742627144,
+        0.020160000771284103,
+        0.021536000072956085,
+        0.02038400061428547,
+        0.021344000473618507,
+        0.020128000527620316,
+        0.01881599985063076,
+        0.019551999866962433,
+        0.01929599978029728,
+        0.02070399932563305
+      ],
+      "pytorch_samples_ms": [
+        0.020447999238967896,
+        0.0197759997099638,
+        0.01942400075495243,
+        0.01865600049495697,
+        0.01881599985063076,
+        0.018303999677300453,
+        0.019519999623298645,
+        0.01974399946630001,
+        0.018592000007629395,
+        0.01881599985063076,
+        0.018144000321626663,
+        0.01894400082528591,
+        0.01894400082528591,
+        0.01852799952030182,
+        0.01897599920630455,
+        0.01820800080895424,
+        0.01894400082528591,
+        0.01865600049495697,
+        0.018688000738620758,
+        0.019071999937295914
+      ],
+      "requested_bytes": 33554432,
+      "logical_launches": {
+        "triton": 1,
+        "pytorch_eager": 2
+      }
+    }
+  },
+  "analysis_en": "The fused Triton affine kernel took 0.0211 ms versus 0.0189 ms for the two-operation eager path, with max error 4.77e-07.",
+  "analysis_zh": "融合 Triton affine kernel 用时 0.0211 ms；两个 eager PyTorch 操作合计 0.0189 ms，最大误差为 4.77e-07。",
+  "conclusion": "Fuse only after measurements show that intermediate traffic or launch overhead matters for the production shape."
+}

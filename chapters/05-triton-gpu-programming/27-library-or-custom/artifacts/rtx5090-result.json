@@ -1,0 +1,64 @@
+{
+  "lesson": 27,
+  "title": "CUTLASS, cuBLAS, cuDNN, or Triton?",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260840
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.022911999374628067,
+    "secondary": 0.019360000267624855,
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "triton_tflops": 11.715933280674575,
+      "library_tflops": 13.865467576924393,
+      "dtype": "torch.float16",
+      "fused_relu": true,
+      "triton_samples_ms": [
+        0.03846399858593941,
+        0.027904000133275986,
+        0.02457600086927414,
+        0.02316799946129322,
+        0.023455999791622162,
+        0.025567999109625816,
+        0.023552000522613525,
+        0.022911999374628067,
+        0.022048000246286392,
+        0.02239999920129776,
+        0.02147199958562851,
+        0.02175999991595745,
+        0.022463999688625336,
+        0.022463999688625336,
+        0.020128000527620316
+      ],
+      "library_samples_ms": [
+        0.020800000056624413,
+        0.01974399946630001,
+        0.019711999222636223,
+        0.018912000581622124,
+        0.0191040001809597,
+        0.019519999623298645,
+        0.019231999292969704,
+        0.019200000911951065,
+        0.018848000094294548,
+        0.019360000267624855,
+        0.019519999623298645,
+        0.01958400011062622,
+        0.019487999379634857,
+        0.01926399953663349,
+        0.01897599920630455
+      ]
+    }
+  },
+  "analysis_en": "The custom path fused ReLU into the GEMM store and took 0.0229 ms; torch.mm plus ReLU took 0.0194 ms. This is one shape, not a library ranking.",
+  "analysis_zh": "自定义路径把 ReLU 融合进 GEMM store，用时 0.0229 ms；torch.mm 加 ReLU 为 0.0194 ms。这只是一个 shape，不是库排名。",
+  "conclusion": "Start from the strongest covered library; own a custom kernel only when the uncovered constraint has measured product value."
+}

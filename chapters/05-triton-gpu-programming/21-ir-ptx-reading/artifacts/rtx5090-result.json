@@ -1,0 +1,33 @@
+{
+  "lesson": 21,
+  "title": "From Triton Source to IR and PTX",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260834
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "primary": 5,
+    "secondary": "TTIR -> TTGIR -> LLVM IR -> PTX",
+    "max_abs_error": 4.76837158203125e-07,
+    "passed": true,
+    "details": {
+      "source_has_mask": true,
+      "target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+      "inspect_commands": [
+        "TRITON_KERNEL_DUMP=1",
+        "proton-viewer",
+        "ncu"
+      ]
+    }
+  },
+  "analysis_en": "The reviewed kernel source has 5 lines and targets GPUTarget(backend='cuda', arch=120, warp_size=32). IR/PTX inspection is a path to evidence, not a substitute for counters.",
+  "analysis_zh": "被审阅的 kernel 源码有 5 行，目标为 GPUTarget(backend='cuda', arch=120, warp_size=32)。阅读 IR/PTX 是取证路径，不能代替 counter。",
+  "conclusion": "Use IR to formulate a testable hypothesis, then confirm it with a controlled kernel variant and profiler evidence."
+}

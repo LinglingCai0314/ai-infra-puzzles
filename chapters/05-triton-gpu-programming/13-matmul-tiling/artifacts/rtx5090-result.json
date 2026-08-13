@@ -1,0 +1,64 @@
+{
+  "lesson": 13,
+  "title": "Matmul Tiling and the Library Boundary",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260826
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.022911999374628067,
+    "secondary": 0.014560000039637089,
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "triton_tflops": 11.715933280674575,
+      "library_tflops": 18.436501048710902,
+      "dtype": "torch.float16",
+      "fused_relu": false,
+      "triton_samples_ms": [
+        0.037696000188589096,
+        0.028063999488949776,
+        0.02707199938595295,
+        0.024768000468611717,
+        0.023423999547958374,
+        0.02643200010061264,
+        0.02287999913096428,
+        0.02412799932062626,
+        0.02287999913096428,
+        0.022784000262618065,
+        0.022911999374628067,
+        0.021568000316619873,
+        0.021856000646948814,
+        0.0225600004196167,
+        0.022336000576615334
+      ],
+      "library_samples_ms": [
+        0.01679999940097332,
+        0.015072000212967396,
+        0.015200000256299973,
+        0.014336000196635723,
+        0.014495999552309513,
+        0.014015999622642994,
+        0.015039999969303608,
+        0.014592000283300877,
+        0.014015999622642994,
+        0.014112000353634357,
+        0.014816000126302242,
+        0.01462399959564209,
+        0.014399999752640724,
+        0.014560000039637089,
+        0.01408000010997057
+      ]
+    }
+  },
+  "analysis_en": "The teaching Triton GEMM reached 11.72 TFLOP/s; torch.mm reached 18.44. The library remains the baseline, not a guaranteed loser.",
+  "analysis_zh": "教学版 Triton GEMM 达到 11.72 TFLOP/s，torch.mm 为 18.44；库函数应始终保留为基线。",
+  "conclusion": "Prefer the library for plain GEMM unless custom layout or fused epilogue value survives a representative shape sweep."
+}

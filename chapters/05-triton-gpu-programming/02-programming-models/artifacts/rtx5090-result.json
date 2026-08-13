@@ -1,0 +1,72 @@
+{
+  "lesson": 2,
+  "title": "Blocked Programs versus CUDA Threads",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260815
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.02113599982112646,
+    "secondary": 0.013584000058472157,
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "programs": 16384,
+      "block_elements": 256,
+      "triton_samples_ms": [
+        0.035071998834609985,
+        0.02675200067460537,
+        0.023072000592947006,
+        0.02319999970495701,
+        0.020191999152302742,
+        0.0225600004196167,
+        0.02208000048995018,
+        0.02131200022995472,
+        0.020959999412298203,
+        0.021344000473618507,
+        0.02051199972629547,
+        0.020287999883294106,
+        0.021568000316619873,
+        0.019039999693632126,
+        0.0208320003002882,
+        0.019487999379634857,
+        0.02051199972629547,
+        0.02131200022995472,
+        0.020255999639630318,
+        0.020576000213623047
+      ],
+      "pytorch_samples_ms": [
+        0.013311999849975109,
+        0.013055999763309956,
+        0.013567999936640263,
+        0.013791999779641628,
+        0.01360000018030405,
+        0.01360000018030405,
+        0.0144640002399683,
+        0.013728000223636627,
+        0.013887999579310417,
+        0.012736000120639801,
+        0.013856000266969204,
+        0.013824000023305416,
+        0.01283199992030859,
+        0.013791999779641628,
+        0.013088000006973743,
+        0.01321600005030632,
+        0.012543999589979649,
+        0.01283199992030859,
+        0.01375999953597784,
+        0.012384000234305859
+      ]
+    }
+  },
+  "analysis_en": "16,384 blocked programs covered 4,194,304 scalar elements; correctness matched torch.add and the two timings are reported separately.",
+  "analysis_zh": "16,384 个 blocked program 覆盖 4,194,304 个标量元素；结果与 torch.add 一致，两条路径分别计时。",
+  "conclusion": "Reason in blocked programs first; descend to warp and instruction details only when generated code or counters require it."
+}

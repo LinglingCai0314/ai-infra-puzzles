@@ -1,0 +1,30 @@
+{
+  "lesson": 24,
+  "title": "Backend Portability and the ROCm Boundary",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260837
+  },
+  "evidence_label": "compatibility-probe",
+  "metrics": {
+    "primary": "cuda",
+    "secondary": 120,
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "triton_version": "3.7.1",
+      "same_source_candidate": true,
+      "rocm_executed": false,
+      "source_lines": 5
+    }
+  },
+  "analysis_en": "This run compiled the same Triton source for backend=cuda, arch=120. ROCm portability remains unmeasured on this NVIDIA-only execution.",
+  "analysis_zh": "本次将同一份 Triton 源码编译到 backend=cuda、arch=120；由于只运行了 NVIDIA 环境，ROCm 可移植性仍未实测。",
+  "conclusion": "Call code portable only after correctness passes on every target; call performance portable only after per-target tuning and measurement."
+}

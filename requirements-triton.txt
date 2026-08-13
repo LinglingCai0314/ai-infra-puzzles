@@ -1,0 +1,2 @@
+-r requirements-notebook.txt
+triton==3.7.1

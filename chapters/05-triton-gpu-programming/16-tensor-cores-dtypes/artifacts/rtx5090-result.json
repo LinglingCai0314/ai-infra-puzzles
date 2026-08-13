@@ -1,0 +1,64 @@
+{
+  "lesson": 16,
+  "title": "Tensor Cores and Dtype Semantics",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260829
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.025087999179959297,
+    "secondary": 0.015456000342965126,
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "triton_tflops": 10.699755451779136,
+      "library_tflops": 17.36771804111532,
+      "dtype": "torch.bfloat16",
+      "fused_relu": false,
+      "triton_samples_ms": [
+        0.03929600119590759,
+        0.03129599988460541,
+        0.027648000046610832,
+        0.025631999596953392,
+        0.025728000327944756,
+        0.029152000322937965,
+        0.02550400048494339,
+        0.025087999179959297,
+        0.02412799932062626,
+        0.024191999807953835,
+        0.022016000002622604,
+        0.02239999920129776,
+        0.023520000278949738,
+        0.02316799946129322,
+        0.021824000403285027
+      ],
+      "library_samples_ms": [
+        0.017216000705957413,
+        0.016287999227643013,
+        0.015263999812304974,
+        0.01587199978530407,
+        0.014976000413298607,
+        0.015039999969303608,
+        0.01568000018596649,
+        0.0163199994713068,
+        0.014688000082969666,
+        0.015456000342965126,
+        0.015135999768972397,
+        0.016063999384641647,
+        0.01539199985563755,
+        0.015552000142633915,
+        0.015424000099301338
+      ]
+    }
+  },
+  "analysis_en": "BF16 Triton and library GEMM are reported separately: 0.0251 and 0.0155 ms, with FP32-comparison max error 0.000e+00.",
+  "analysis_zh": "BF16 Triton 与库 GEMM 分别为 0.0251 和 0.0155 ms；按 FP32 比较的最大误差为 0.000e+00。",
+  "conclusion": "Choose dtype from an application error envelope first, then optimize the eligible matrix path."
+}

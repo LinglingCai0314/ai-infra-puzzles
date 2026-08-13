@@ -1,0 +1,71 @@
+{
+  "lesson": 23,
+  "title": "Paged KV Cache Addressing",
+  "environment": {
+    "gpu": "NVIDIA GeForce RTX 5090",
+    "compute_capability": "12.0",
+    "torch": "2.13.0+cu130",
+    "cuda_runtime": "13.0",
+    "triton": "3.7.1",
+    "triton_target": "GPUTarget(backend='cuda', arch=120, warp_size=32)",
+    "python": "3.12.3",
+    "seed": 20260836
+  },
+  "evidence_label": "native-backend",
+  "metrics": {
+    "primary": 0.017103999853134155,
+    "secondary": 0.03899199888110161,
+    "max_abs_error": 0.0,
+    "passed": true,
+    "details": {
+      "block_table_entries": 128,
+      "triton_samples_ms": [
+        0.03001599945127964,
+        0.02160000056028366,
+        0.01942400075495243,
+        0.019872000440955162,
+        0.018271999433636665,
+        0.020031999796628952,
+        0.01775999926030636,
+        0.01711999997496605,
+        0.016416000202298164,
+        0.016287999227643013,
+        0.01708799973130226,
+        0.016736000776290894,
+        0.017376000061631203,
+        0.021183999255299568,
+        0.016224000602960587,
+        0.015936000272631645,
+        0.01648000068962574,
+        0.016127999871969223,
+        0.016672000288963318,
+        0.016736000776290894
+      ],
+      "pytorch_samples_ms": [
+        0.041280001401901245,
+        0.04032000154256821,
+        0.03964800015091896,
+        0.0390079990029335,
+        0.0395519994199276,
+        0.040511999279260635,
+        0.0395519994199276,
+        0.039423998445272446,
+        0.03948799893260002,
+        0.03843199834227562,
+        0.038495998829603195,
+        0.038784001022577286,
+        0.03811199963092804,
+        0.038975998759269714,
+        0.03855999931693077,
+        0.0382080003619194,
+        0.039872001856565475,
+        0.03814399987459183,
+        0.037856001406908035,
+        0.038176000118255615
+      ]
+    }
+  },
+  "analysis_en": "The Triton paged gather followed 128 logical-to-physical block entries in 0.0171 ms and matched advanced indexing exactly.",
+  "analysis_zh": "Triton paged gather 按 128 个逻辑到物理 block 映射完成读取，用时 0.0171 ms，与 advanced indexing 完全一致。",
+  "conclusion": "Validate address mapping independently before embedding the gather inside an attention reduction."
+}
