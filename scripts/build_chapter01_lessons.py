@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 from textwrap import dedent
 
+from markdown_header import render_markdown_header
 from tutorial_guides import CHAPTER_01_MAP
 
 
@@ -809,7 +810,8 @@ def readme_for(lesson: dict) -> str:
     theory = THEORY[no]
     concepts = "\n".join(f"- {x}" for x in lesson["concepts"])
     refs = "\n".join(f"- [{name}]({url})" for name,url in lesson["refs"])
-    return f"""# Lesson {no:02d} — {lesson['title']}
+    path = CHAPTER / f"{no:02d}-{lesson['slug']}" / "README.md"
+    return render_markdown_header(path) + f"""# Lesson {no:02d} — {lesson['title']}
 
 > **Puzzle:** {lesson['puzzle']}
 
@@ -926,7 +928,7 @@ def chapter_readme() -> str:
     for x in LESSONS:
         rows.append(f'| {x["no"]:02d} | [{x["title"]}]({x["no"]:02d}-{x["slug"]}/README.md) | `{x["label"]}` | Published |')
     table='\n'.join(rows)
-    return f"""# Chapter 01 — Mixed Precision and INT4 Quantization
+    return render_markdown_header(CHAPTER / "README.md") + f"""# Chapter 01 — Mixed Precision and INT4 Quantization
 
 > Learn how numerical formats become storage layouts, GPU operators, memory
 > costs, latency changes, quality trade-offs, and production decisions.

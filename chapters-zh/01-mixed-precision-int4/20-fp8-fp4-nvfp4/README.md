@@ -1,3 +1,15 @@
+<!-- ai-infra-puzzles-header:start -->
+<p align="center">
+  <img src="../../../assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+</p>
+
+<h1 align="center">AI Infra Puzzles</h1>
+
+<p align="center">
+  <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
+</p>
+<!-- ai-infra-puzzles-header:end -->
+
 # 第 20 课 — FP8, FP4, NVFP4 和硬件边界
 
 > **谜题：**Blackwell硬件支持是否意味着每个框架构建都暴露相同的内容？FP8 或者NVFP4路径?

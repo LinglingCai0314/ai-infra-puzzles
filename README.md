@@ -1,5 +1,6 @@
+<!-- ai-infra-puzzles-header:start -->
 <p align="center">
-  <img src="./assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+  <img src="assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
 </p>
 
 <h1 align="center">AI Infra Puzzles</h1>
@@ -7,6 +8,7 @@
 <p align="center">
   <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
 </p>
+<!-- ai-infra-puzzles-header:end -->
 
 <p align="center">
   <a href="#what-is-ai-infra-puzzles"><strong>Overview</strong></a> ·

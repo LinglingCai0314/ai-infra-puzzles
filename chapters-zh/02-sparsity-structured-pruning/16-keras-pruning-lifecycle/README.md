@@ -1,3 +1,15 @@
+<!-- ai-infra-puzzles-header:start -->
+<p align="center">
+  <img src="../../../assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+</p>
+
+<h1 align="center">AI Infra Puzzles</h1>
+
+<p align="center">
+  <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
+</p>
+<!-- ai-infra-puzzles-header:end -->
+
 # 第 16 课 — TensorFlow MOT 和 Keras 裁剪/导出生命周期
 
 > **谜题：**为什么训练时的Keras稀疏性无法减少可部署的TFLite artifact？

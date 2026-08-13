@@ -1,3 +1,15 @@
+<!-- ai-infra-puzzles-header:start -->
+<p align="center">
+  <img src="../../assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+</p>
+
+<h1 align="center">AI Infra Puzzles</h1>
+
+<p align="center">
+  <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
+</p>
+<!-- ai-infra-puzzles-header:end -->
+
 # 第 03 章 — vLLM 推理与服务
 
 [← 中文首页](../../README_ZH.md) · [English chapter](../../chapters/03-vllm-inference-serving/README.md)

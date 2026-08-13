@@ -1,3 +1,15 @@
+<!-- ai-infra-puzzles-header:start -->
+<p align="center">
+  <img src="../../../assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+</p>
+
+<h1 align="center">AI Infra Puzzles</h1>
+
+<p align="center">
+  <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
+</p>
+<!-- ai-infra-puzzles-header:end -->
+
 # 第 05 课 — 无结构幅度剪枝，无存储神话
 
 > **谜题：**为什么一个模型可以包含80% 零state_dict变大了吗？

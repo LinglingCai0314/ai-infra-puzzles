@@ -1,3 +1,15 @@
+<!-- ai-infra-puzzles-header:start -->
+<p align="center">
+  <img src="../../../assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+</p>
+
+<h1 align="center">AI Infra Puzzles</h1>
+
+<p align="center">
+  <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
+</p>
+<!-- ai-infra-puzzles-header:end -->
+
 # 第 27 课 — 自动化实验管理与可重复剪枝记录
 
 > **谜题：** 哪些字段可以由其他人复现一个剪枝掩码？

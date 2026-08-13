@@ -1,3 +1,15 @@
+<!-- ai-infra-puzzles-header:start -->
+<p align="center">
+  <img src="../../../assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+</p>
+
+<h1 align="center">AI Infra Puzzles</h1>
+
+<p align="center">
+  <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
+</p>
+<!-- ai-infra-puzzles-header:end -->
+
 # 第 16 课 — TensorRT INT4 块量化：Q/DQ，打包和WoQ
 
 > **谜题：** 在 TensorRT 能够消费 INT4 权重之前，图和序列化权重缓冲区中必须包含什么？

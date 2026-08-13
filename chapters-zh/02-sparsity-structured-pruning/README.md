@@ -1,3 +1,15 @@
+<!-- ai-infra-puzzles-header:start -->
+<p align="center">
+  <img src="../../assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+</p>
+
+<h1 align="center">AI Infra Puzzles</h1>
+
+<p align="center">
+  <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
+</p>
+<!-- ai-infra-puzzles-header:end -->
+
 # 第 02 章 — 稀疏性与结构化剪枝
 
 本章不把模型稀疏性停留在“数一数有多少个零”，而是将它变成一连串可验证的决策。28 课内容涵盖目标、granularity、mask、物理 channel 删除、依赖图、恢复 schedule、N:M 约束、框架生命周期、ONNX/TensorRT 边界、CNN/Transformer/LLM 案例、benchmark、rollback、可复现性和平台相关的部署方案。

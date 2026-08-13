@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from build_chapter02_lessons import CHAPTER, LESSONS, notebook, read_artifact, result_table
+from markdown_header import strip_markdown_header
 from tutorial_guides import CHAPTER_02_GUIDES
 
 
@@ -90,27 +91,28 @@ def main() -> int:
         note = note_path.read_text(encoding="utf-8")
         nb = json.loads(notebook_path.read_text(encoding="utf-8"))
         artifact = json.loads(artifact_path.read_text(encoding="utf-8"))
-        notes[directory.name] = note
+        note_body = strip_markdown_header(note)
+        notes[directory.name] = note_body
         check_relative_links(note_path, note, issues)
 
         # Concise, lesson-specific prose is preferable to padding every lesson
         # with the same delivery-language paragraphs.
-        if words(note) < 750:
-            issues.append(f"{directory.name}: README has only {words(note)} words")
-        if sum(line.startswith("|---") for line in note.splitlines()) < 3:
+        if words(note_body) < 750:
+            issues.append(f"{directory.name}: README has only {words(note_body)} words")
+        if sum(line.startswith("|---") for line in note_body.splitlines()) < 3:
             issues.append(f"{directory.name}: README needs three explanatory tables")
-        if len(re.findall(r"^- \[", note, flags=re.M)) < 2:
+        if len(re.findall(r"^- \[", note_body, flags=re.M)) < 2:
             issues.append(f"{directory.name}: README needs at least two official/primary references")
         for heading in REQUIRED_HEADINGS:
-            if heading not in note:
+            if heading not in note_body:
                 issues.append(f"{directory.name}: missing heading {heading}")
         if no in CHAPTER_02_GUIDES:
             for signal in ("```mermaid", "### Walk it step by step"):
-                if signal not in note:
+                if signal not in note_body:
                     issues.append(f"{directory.name}: missing curated visual guide signal {signal}")
-        if result_table(spec, artifact) not in note:
+        if result_table(spec, artifact) not in note_body:
             issues.append(f"{directory.name}: README result table is not synchronized")
-        normalized_note = re.sub(r"\s+", " ", note)
+        normalized_note = re.sub(r"\s+", " ", note_body)
         for field in ("hook", "mechanism", "code_walk", "failure", "next_step"):
             anchor = re.sub(r"\s+", " ", str(spec[field])).split(".", 1)[0]
             if anchor not in normalized_note:

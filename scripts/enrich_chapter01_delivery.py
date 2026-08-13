@@ -11,6 +11,7 @@ from typing import Any
 
 from build_chapter01_lessons import CHAPTER, LESSONS, THEORY
 from chapter01_delivery_content import DELIVERY, environment_line, result_table
+from markdown_header import render_markdown_header
 from tutorial_guides import CHAPTER_01_GUIDES, render_guide
 
 
@@ -103,7 +104,8 @@ def readme_for(lesson: dict[str, Any], artifact: dict[str, Any]) -> str:
     )
     results = result_table(no, artifact)
     guide = render_guide(CHAPTER_01_GUIDES.get(no))
-    return format_markdown(f"""# Lesson {no:02d} — {lesson['title']}
+    path = CHAPTER / f"{no:02d}-{lesson['slug']}" / "README.md"
+    return render_markdown_header(path) + format_markdown(f"""# Lesson {no:02d} — {lesson['title']}
 
 > **Puzzle:** {lesson['puzzle']}
 

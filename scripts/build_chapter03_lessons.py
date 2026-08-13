@@ -13,6 +13,7 @@ from typing import Any
 
 from chapter03_content import COMMON_REFS, LESSONS
 from chapter03_experiments import ENV_CODE, EXPERIMENTS
+from markdown_header import render_markdown_header
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -128,7 +129,7 @@ def readme(spec: dict[str, Any], artifact: dict[str, Any] | None) -> str:
     anchors = "\n".join(f"| {index} | {item} |" for index, item in enumerate(spec["anchors"], 1))
     analysis = artifact["analysis"] if artifact else "Run the notebook to create the first structured RTX 5090 result."
     guide = render_guide(spec)
-    return wrap(f'''# Lesson {spec['no']:02d} — {spec['title']}
+    return render_markdown_header(lesson_dir(spec) / "README.md") + wrap(f'''# Lesson {spec['no']:02d} — {spec['title']}
 
 > **Puzzle:** {spec['puzzle']}
 
@@ -295,7 +296,7 @@ def chapter_readme() -> str:
             directory = f"{spec['no']:02d}-{spec['slug']}"
             rows.append(f"| {spec['no']:02d} | [{spec['title']}]({directory}/README.md) | [notebook]({directory}/lab.ipynb) |")
         blocks.append(f"## Phase {numeral} — {title}\n\n" + "\n".join(rows))
-    return wrap(f'''# Chapter 03 — vLLM Inference and Serving
+    return render_markdown_header(CHAPTER / "README.md") + wrap(f'''# Chapter 03 — vLLM Inference and Serving
 
 [Project home](../../README.md) · [中文首页](../../README_ZH.md) ·
 [中文本章](../../chapters-zh/03-vllm-inference-serving/README.md)

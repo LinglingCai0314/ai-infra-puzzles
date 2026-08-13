@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from urllib.parse import unquote
 
+from markdown_header import render_markdown_header
 
 TEXT_SUFFIXES = {
     ".c",
@@ -93,6 +94,11 @@ def main() -> int:
         except UnicodeDecodeError:
             issues.append(f"text-like file is not UTF-8: {path}")
             continue
+
+        if path.suffix.lower() == ".md":
+            expected_header = render_markdown_header(path, root)
+            if not text.startswith(expected_header):
+                issues.append(f"missing or stale Markdown header: {path}")
 
         if path.resolve() != SELF:
             for token in FORBIDDEN_TEXT:

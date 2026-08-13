@@ -1,8 +1,14 @@
-<p align="center"> <img src="./assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170"> </p>
+<!-- ai-infra-puzzles-header:start -->
+<p align="center">
+  <img src="assets/branding/logo.png" alt="AI Infra Puzzles logo" width="170">
+</p>
 
 <h1 align="center">AI Infra Puzzles</h1>
 
-<p align="center"> <strong>通过动手解题，学习 CUDA 优化与 LLM 推理。</strong> </p>
+<p align="center">
+  <strong>Learn CUDA optimization and LLM inference through hands-on puzzles.</strong>
+</p>
+<!-- ai-infra-puzzles-header:end -->
 
 <p align="center"> <a href="#what-is-ai-infra-puzzles"><strong>概览</strong></a> · <a href="#start-with-chapter-01"><strong>从这里开始</strong></a> · <a href="#quick-start"><strong>快速开始</strong></a> · <a href="#how-this-repository-works"><strong>它是如何工作的</strong></a> · <a href="README.md"><strong>English</strong></a> </p>
 

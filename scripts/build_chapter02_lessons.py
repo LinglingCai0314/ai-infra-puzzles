@@ -12,6 +12,7 @@ from typing import Any
 
 from chapter02_content import COMMON_REFS, LESSONS
 from chapter02_experiments import ENV_CODE, EXPERIMENTS
+from markdown_header import render_markdown_header
 from tutorial_guides import CHAPTER_02_GUIDES, CHAPTER_02_MAP, render_guide
 
 
@@ -124,7 +125,7 @@ def readme(spec: dict[str, Any], artifact: dict[str, Any] | None) -> str:
     optional_install = ""
     if spec["no"] in OPTIONAL_INSTALLS:
         optional_install = f'''\nThis lesson's optional/native backend path requires:\n\n```bash\n{OPTIONAL_INSTALLS[spec["no"]]}\n```\n'''
-    return wrap(f'''# Lesson {spec['no']:02d} — {spec['title']}
+    return render_markdown_header(lesson_dir(spec) / "README.md") + wrap(f'''# Lesson {spec['no']:02d} — {spec['title']}
 
 > **Puzzle:** {spec['puzzle']}
 
@@ -294,7 +295,7 @@ def chapter_readme() -> str:
             rows.append(f"| {spec['no']:02d} | [{spec['title']}]({directory}/README.md) | [notebook]({directory}/lab.ipynb) |")
         blocks.append(f"## Phase {numeral} — {title}\n\n" + "\n".join(rows))
     phase_blocks = "\n\n".join(blocks)
-    return wrap(f'''# Chapter 02 — Sparsity and Structured Pruning
+    return render_markdown_header(CHAPTER / "README.md") + wrap(f'''# Chapter 02 — Sparsity and Structured Pruning
 
 This chapter turns model sparsity from a zero-count exercise into a chain of testable
 decisions. Its 28 lessons cover objectives, granularities, masks, physical channel
